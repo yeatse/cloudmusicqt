@@ -1,0 +1,36 @@
+# C++ objects and libs
+
+*.slo
+*.lo
+*.o
+*.a
+*.la
+*.lai
+*.so
+*.dll
+*.dylib
+*.moc
+
+# Qt-es
+
+*.pro.user
+*.pro.user.*
+moc_*.cpp
+qrc_*.cpp
+Makefile
+*-build-*
+.make.cache
+
+# Symbian-es
+bld.inf
+*.loc
+*.rss
+*_exe.mmp
+*.pkg
+*.sis
+ABLD.BAT
+*.mk
+
+# debian-es
+*.changes
+*.deb
