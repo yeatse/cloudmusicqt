@@ -40,6 +40,8 @@ symbian {
     # Symbian have a different syntax
     DEFINES -= VER=\\\"$$VERSION\\\"
     DEFINES += VER=\"$$VERSION\"
+
+    MMP_RULES += "EPOCPROCESSPRIORITY windowserver"
 }
 
 # Please do not modify the following two lines. Required for deployment.
