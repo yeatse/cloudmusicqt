@@ -25,13 +25,15 @@ PageStackWindow {
         id: internal
 
         function resetBackground() {
+            var bgColor = "#313131"
             if (app.hasOwnProperty("color")) {
-                app.color = "#313131"
+                app.color = bgColor
             }
             else {
                 for (var i = app.children.length - 1; i >= 0; i--) {
-                    if (app.children[i].hasOwnProperty("color")) {
-                        app.children[i].color = "#313131"
+                    var child = app.children[i]
+                    if (child != volumeIndicator && child.hasOwnProperty("color")) {
+                        child.color = bgColor
                         break
                     }
                 }
@@ -45,7 +47,7 @@ PageStackWindow {
 
     VolumeIndicator {
         id: volumeIndicator
-        volume: Math.min(deviceInfo.voiceRingtoneVolume / 100, 50)
+        volume: Math.min(deviceInfo.voiceRingtoneVolume, 50)
     }
 
     InfoBanner {

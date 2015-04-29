@@ -9,17 +9,29 @@ QT += network webkit
 CONFIG += mobility
 MOBILITY += multimedia systeminfo
 
-SOURCES += main.cpp
+HEADERS += \
+    qmlapi.h \
+    networkaccessmanagerfactory.h \
+    singletonbase.h \
+    userconfig.h
+
+SOURCES += main.cpp \
+    qmlapi.cpp \
+    networkaccessmanagerfactory.cpp \
+    userconfig.cpp
 
 folder_symbian3.source = qml/cloudmusicqt
 folder_symbian3.target = qml
 
+folder_js.source = qml/js
+folder_js.target = qml
+
 simulator {
-    DEPLOYMENTFOLDERS = folder_symbian3
+    DEPLOYMENTFOLDERS = folder_symbian3 folder_js
 }
 
 symbian {
-    DEPLOYMENTFOLDERS = folder_symbian3
+    DEPLOYMENTFOLDERS = folder_symbian3 folder_js
 
     CONFIG += qt-components localize_deployment
     TARGET.UID3 = 0x2006DFF5

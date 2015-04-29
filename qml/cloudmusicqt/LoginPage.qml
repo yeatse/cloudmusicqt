@@ -1,6 +1,7 @@
 import QtQuick 1.1
 import com.nokia.symbian 1.1
 import QtWebKit 1.0
+import "../js/api.js" as Api
 
 Page {
     id: page
@@ -17,15 +18,34 @@ Page {
         title: "登录"
     }
 
-    WebView {
-        id: webView
+    Flickable {
+        id: flickable
         anchors { fill: parent; topMargin: viewHeader.height }
-        contentsScale: 1.2
-        preferredWidth: parent.width / contentsScale
-        preferredHeight: parent.height / contentsScale
-        url: "http://www.baidu.com"
+        contentWidth: webView.width
+        contentHeight: webView.height
+        WebView {
+            id: webView
+            contentsScale: 1.1
+            preferredWidth: flickable.width / contentsScale
+            preferredHeight: flickable.height / contentsScale
+            url: Api.CloundMusicApi.SNS_AUTH_SINA
 
+            javaScriptWindowObjects: QtObject {
+                WebView.windowObjectName: "top"
 
-        Component.onDestruction: app.forceActiveFocus()
+                function postMessage(msg) {
+                    console.log(JSON.stringify(msg))
+                }
+            }
+
+            Component.onDestruction: app.forceActiveFocus()
+        }
+    }
+
+    ProgressBar {
+        anchors.bottom: parent.bottom
+        width: parent.width
+        value: webView.progress
+        visible: webView.status == WebView.Loading
     }
 }
