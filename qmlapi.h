@@ -8,11 +8,8 @@ class QmlApi : public QObject
     Q_OBJECT
 public:
     explicit QmlApi(QObject *parent = 0);
-    
-signals:
-    
-public slots:
-    
+
+    Q_INVOKABLE QString getCookieToken();
 };
 
 #endif // QMLAPI_H

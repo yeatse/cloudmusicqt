@@ -13,12 +13,17 @@ HEADERS += \
     qmlapi.h \
     networkaccessmanagerfactory.h \
     singletonbase.h \
-    userconfig.h
+    userconfig.h \
+    musicfetcher.h
 
 SOURCES += main.cpp \
     qmlapi.cpp \
     networkaccessmanagerfactory.cpp \
-    userconfig.cpp
+    userconfig.cpp \
+    musicfetcher.cpp
+
+include(qjson/qjson.pri)
+DEFINES += QJSON_MAKEDLL
 
 folder_symbian3.source = qml/cloudmusicqt
 folder_symbian3.target = qml
