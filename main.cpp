@@ -1,11 +1,15 @@
 #include <QtGui/QApplication>
-#include <QDeclarativeEngine>
-#include <QDeclarativeContext>
+#include <QtDeclarative>
 #include <QWebSettings>
 
 #include "qmlapplicationviewer.h"
 #include "networkaccessmanagerfactory.h"
 #include "qmlapi.h"
+#include "musicfetcher.h"
+
+//#ifdef Q_WS_SIMULATOR
+#include <QNetworkProxy>
+//#endif
 
 Q_DECL_EXPORT int main(int argc, char *argv[])
 {
@@ -17,6 +21,13 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     app->setApplicationName("CloudMusic");
     app->setOrganizationName("Yeatse");
     app->setApplicationVersion(VER);
+
+//#ifdef Q_WS_SIMULATOR
+    QNetworkProxy::setApplicationProxy(QNetworkProxy(QNetworkProxy::HttpProxy, "192.168.1.64", 8888));
+//#endif
+
+    qmlRegisterUncreatableType<MusicData>("com.yeatse.cloudmusic", 1, 0, "MusicData", "");
+    qmlRegisterType<MusicFetcher>("com.yeatse.cloudmusic", 1, 0, "MusicFetcher");
 
     QWebSettings::globalSettings()->setUserStyleSheetUrl(QUrl::fromLocalFile("qml/js/default_theme.css"));
 

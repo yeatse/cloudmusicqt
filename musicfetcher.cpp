@@ -11,11 +11,14 @@
 
 const char* ApiBaseUrl = "http://music.163.com/api";
 
-MusicFetcher::MusicFetcher(QDeclarativeView *parent) :
-    QObject(parent), mNetworkAccessManager(parent->engine()->networkAccessManager()),
-    mParser(new QJson::Parser)
+MusicData::MusicData(QObject *parent) : QObject(parent)
 {
-    qmlRegisterUncreatableType<MusicData>("com.yeatse.cloudmusic", 1, 0, "MusicData", "don't touch this");
+}
+
+MusicFetcher::MusicFetcher(QObject *parent) : QObject(parent),
+    mNetworkAccessManager(0), mParser(new QJson::Parser),
+    isComponentComplete(false)
+{
 }
 
 MusicFetcher::~MusicFetcher()
@@ -23,9 +26,21 @@ MusicFetcher::~MusicFetcher()
     delete mParser;
 }
 
+void MusicFetcher::classBegin()
+{
+    mNetworkAccessManager = qmlEngine(this)->networkAccessManager();
+}
+
+void MusicFetcher::componentComplete()
+{
+    isComponentComplete = true;
+}
+
 void MusicFetcher::loadRecommend(int offset, bool total, int limit)
 {
-    if (mCurrentReply)
+    if (!isComponentComplete) return;
+
+    if (mCurrentReply && mCurrentReply->isRunning())
         mCurrentReply->abort();
 
     QUrl url(QString(ApiBaseUrl).append("/discovery/recommend/songs"));
@@ -33,14 +48,15 @@ void MusicFetcher::loadRecommend(int offset, bool total, int limit)
     url.addEncodedQueryItem("total", total ? "true" : "false");
     url.addEncodedQueryItem("limit", QByteArray::number(limit));
 
-    mCurrentReply = mNetworkAccessManager->get(url);
+    mCurrentReply = mNetworkAccessManager->get(QNetworkRequest(url));
     mCurrentReply->setProperty("query", "recommend");
     mCurrentReply->setProperty("reload", true);
+    connect(mCurrentReply, SIGNAL(finished()), SLOT(requestFinished()));
 
     emit loadingChanged();
 }
 
-MusicData MusicFetcher::dataAt(const int &index) const
+MusicData* MusicFetcher::dataAt(const int &index) const
 {
     if (index >= 0 && index < mDataList.size())
         return mDataList.at(index);
@@ -95,4 +111,5 @@ MusicData* MusicFetcher::createDataFromMap(const QVariant &data)
 
     MusicData* result = new MusicData(this);
     QVariantMap map = data.toMap();
+    return result;
 }

@@ -1,5 +1,6 @@
 import QtQuick 1.1
 import com.nokia.symbian 1.1
+import com.yeatse.cloudmusic 1.0
 
 Page {
     id: mainPage
@@ -34,6 +35,11 @@ Page {
                 iconSource: "gfx/private_radio_icon.png"
                 title: "私人FM"
                 subTitle: "放松下来，享受你的专属推荐"
+                onClicked: privateFMFecther.loadRecommend()
+
+                MusicFetcher {
+                    id: privateFMFecther
+                }
             }
 
             CategoryItem {

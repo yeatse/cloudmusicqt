@@ -2,6 +2,7 @@
 
 #include <QNetworkAccessManager>
 #include <QSettings>
+#include <QSystemDeviceInfo>
 #include <QDebug>
 
 #include "userconfig.h"
@@ -30,12 +31,15 @@ NetworkCookieJar::~NetworkCookieJar()
 void NetworkCookieJar::clearCookies()
 {
     setAllCookies(QList<QNetworkCookie>());
+    loadExtraCookies();
 }
 
 void NetworkCookieJar::loadCookies()
 {
-    QByteArray data = QSettings().value(UserConfig::KeyCookies).toByteArray();
-    setAllCookies(QNetworkCookie::parseCookies(data));
+    QByteArray storedCookies = QSettings().value(UserConfig::KeyCookies).toByteArray();
+    setAllCookies(QNetworkCookie::parseCookies(storedCookies));
+
+    loadExtraCookies();
 }
 
 void NetworkCookieJar::saveCookies()
@@ -49,4 +53,15 @@ void NetworkCookieJar::saveCookies()
         }
     }
     QSettings().setValue(UserConfig::KeyCookies, data);
+}
+
+void NetworkCookieJar::loadExtraCookies()
+{
+    QList<QNetworkCookie> extraCookies;
+    extraCookies.append(QNetworkCookie("appver", "1.6.1.82809"));
+    extraCookies.append(QNetworkCookie("channel", "netease"));
+    extraCookies.append(QNetworkCookie("deviceId", QtMobility::QSystemDeviceInfo().uniqueDeviceID().toUpper()));
+    extraCookies.append(QNetworkCookie("os", "pc"));
+    extraCookies.append(QNetworkCookie("osver", "Microsoft-Windows-8-Professional-build-9200-64bit"));
+    setCookiesFromUrl(extraCookies, QUrl("http://music.163.com"));
 }

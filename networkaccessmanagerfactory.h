@@ -24,6 +24,7 @@ private:
     NetworkCookieJar();
     void loadCookies();
     void saveCookies();
+    void loadExtraCookies();
 };
 
 #endif // NETWORKACCESSMANAGERFACTORY_H

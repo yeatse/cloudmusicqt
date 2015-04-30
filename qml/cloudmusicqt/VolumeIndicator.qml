@@ -35,12 +35,14 @@ Rectangle {
         PropertyAnimation {
             target: root
             property: "opacity"
+            easing.type: Easing.OutQuint
             to: 1
             duration: 500
         }
         PropertyAnimation {
             target: root
             property: "opacity"
+            easing.type: Easing.InQuint
             to: 0
             duration: 500
         }
