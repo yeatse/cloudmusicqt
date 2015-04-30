@@ -35,11 +35,7 @@ Page {
                 iconSource: "gfx/private_radio_icon.png"
                 title: "私人FM"
                 subTitle: "放松下来，享受你的专属推荐"
-                onClicked: privateFMFecther.loadRecommend()
-
-                MusicFetcher {
-                    id: privateFMFecther
-                }
+                onClicked: playerPage.playPrivateFM()
             }
 
             CategoryItem {

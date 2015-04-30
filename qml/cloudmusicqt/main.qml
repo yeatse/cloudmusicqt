@@ -1,7 +1,6 @@
 import QtQuick 1.1
 import com.nokia.symbian 1.1
 import com.nokia.extras 1.1
-import QtMultimediaKit 1.1
 import QtMobility.systeminfo 1.1
 
 PageStackWindow {
@@ -14,6 +13,10 @@ PageStackWindow {
     initialPage: MainPage {
         id: mainPage
         tools: mainTools
+    }
+
+    PlayerPage {
+        id: playerPage
     }
 
     function showMessage(msg) {
