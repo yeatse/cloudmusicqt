@@ -2,23 +2,25 @@ import QtQuick 1.1
 import com.nokia.symbian 1.1
 import QtMultimediaKit 1.1
 import com.yeatse.cloudmusic 1.0
+import "../js/util.js" as Util
 
 Page {
     id: page
 
-    property MusicFetcher currentFetcher: null
-    property MusicInfo currentMusic: null
+    property string currentListId: ""
     property int currentIndex: -1
+    property MusicInfo currentMusic: null
+
+    property string listIdPrivateFM: "PrivateFM"
 
     function playPrivateFM() {
         bringToFront()
-        if (currentFetcher != privateFMFetcher || !audio.playing) {
-            currentFetcher = privateFMFetcher
-            audio.pendingIndex = -1
-            privateFMFetcher.reset()
-            privateFMFetcher.disconnect()
-            privateFMFetcher.loadPrivateFM()
-            privateFMFetcher.loadingChanged.connect(privateFMFetcher.firstListLoaded)
+        if (currentListId != listIdPrivateFM || !audio.playing) {
+            currentListId = listIdPrivateFM
+            musicFetcher.reset()
+            musicFetcher.disconnect()
+            musicFetcher.loadPrivateFM()
+            musicFetcher.loadingChanged.connect(musicFetcher.firstListLoaded)
         }
         else if (audio.paused) {
             audio.play()
@@ -42,42 +44,49 @@ Page {
             onClicked: pageStack.pop()
         }
         ToolButton {
-            iconSource: "toolbar-search"
-            onClicked: audio.stop()
+            iconSource: "gfx/instant_messenger_chat.svg"
+        }
+        ToolButton {
+            iconSource: "toolbar-menu"
+        }
+    }
+
+    onStatusChanged: {
+        if (status == PageStatus.Active) {
+            app.forceActiveFocus()
         }
     }
 
     MusicFetcher {
-        id: privateFMFetcher
+        id: musicFetcher
 
         function disconnect() {
-            privateFMFetcher.loadingChanged.disconnect(firstListLoaded)
-            privateFMFetcher.loadingChanged.disconnect(listAppended)
+            loadingChanged.disconnect(firstListLoaded)
+            loadingChanged.disconnect(privateFMListAppended)
         }
 
         function firstListLoaded() {
             if (loading) return
             disconnect()
-            if (currentFetcher == privateFMFetcher && count > 0) {
+            if (count > 0) {
                 if (audio.status == Audio.Loading) {
-                    audio.pendingIndex = 0
+                    audio.waitingIndex = 0
                 }
                 else {
-                    audio.pendingIndex = -1
+                    audio.waitingIndex = -1
                     audio.setCurrentMusic(0)
                 }
             }
         }
 
-        function listAppended() {
+        function privateFMListAppended() {
             if (loading) return
             disconnect()
-            if (currentFetcher == privateFMFetcher && currentIndex < count - 1) {
-                if (audio.status == Audio.Loading) {
-                    audio.pendingIndex = currentIndex + 1
-                }
+            if (currentListId == listIdPrivateFM && currentIndex < count - 1) {
+                if (audio.status == Audio.Loading)
+                    audio.waitingIndex = currentIndex + 1
                 else {
-                    audio.pendingIndex = -1
+                    audio.waitingIndex = -1
                     audio.setCurrentMusic(currentIndex + 1)
                 }
             }
@@ -87,13 +96,13 @@ Page {
     Audio {
         id: audio
 
+        property int waitingIndex: -1
+
         volume: volumeIndicator.volume / 100
 
-        property int pendingIndex: -1
-
         function setCurrentMusic(index) {
-            if (currentFetcher != null && index >= 0 && index < currentFetcher.count) {
-                currentMusic = currentFetcher.dataAt(index)
+            if (index >= 0 && index < musicFetcher.count) {
+                currentMusic = musicFetcher.dataAt(index)
                 currentIndex = index
                 audio.source = currentMusic.getUrl(MusicInfo.LowQuality)
                 audio.play()
@@ -101,15 +110,15 @@ Page {
         }
 
         function playNextMusic() {
-            if (currentFetcher == privateFMFetcher) {
-                if (currentIndex >= privateFMFetcher.count - 2 && !privateFMFetcher.loading)
-                    privateFMFetcher.loadPrivateFM()
+            if (currentListId == listIdPrivateFM) {
+                if (currentIndex >= musicFetcher.count - 2 && !musicFetcher.loading)
+                    musicFetcher.loadPrivateFM()
 
-                if (currentIndex < privateFMFetcher.count - 1)
+                if (currentIndex < musicFetcher.count - 1)
                     setCurrentMusic(currentIndex + 1)
                 else {
-                    privateFMFetcher.disconnect()
-                    privateFMFetcher.loadingChanged.connect(privateFMFetcher.listAppended)
+                    musicFetcher.disconnect()
+                    musicFetcher.loadingChanged.connect(musicFetcher.privateFMListAppended)
                 }
             }
         }
@@ -142,21 +151,119 @@ Page {
         }
 
         onStatusChanged: {
+            console.log("audio status changed:", debugStatus(), debugError())
             if (status != Audio.Loading) {
-                if (pendingIndex != -1) {
-                    setCurrentMusic(pendingIndex)
-                    pendingIndex = -1
+                if (waitingIndex >= 0 && waitingIndex < musicFetcher.count) {
+                    setCurrentMusic(waitingIndex)
+                    waitingIndex = -1
                     return
                 }
             }
-            console.log(debugStatus(), debugError())
             if (status == Audio.EndOfMedia) {
                 playNextMusic()
             }
         }
 
         onError: {
-            console.log(debugError(), errorString, source)
+            console.log("error occured:", debugError(), errorString, source)
+            if (error == Audio.AccessDenied)
+                playNextMusic()
+        }
+    }
+
+    Image {
+        id: coverImage
+        anchors {
+            top: parent.top; topMargin: platformStyle.graphicSizeSmall
+            horizontalCenter: parent.horizontalCenter
+        }
+        width: Math.min(screen.width, screen.height) - platformStyle.graphicSizeSmall * 2
+        height: width
+        fillMode: Image.PreserveAspectCrop
+        source: currentMusic ? currentMusic.albumImageUrl : ""
+    }
+
+    ProgressBar {
+        id: progressBar
+        anchors {
+            left: coverImage.left; right: coverImage.right
+            top: coverImage.bottom
+        }
+        value: audio.position / audio.duration * 1.0
+        indeterminate: audio.status == Audio.Loading || audio.status == Audio.Stalled
+                       || (!audio.playing && musicFetcher.loading)
+    }
+
+    Text {
+        anchors {
+            left: progressBar.left; top: progressBar.bottom
+        }
+        font.pixelSize: platformStyle.fontSizeSmall
+        color: platformStyle.colorNormalMid
+        text: Util.formatTime(audio.position)
+    }
+
+    Text {
+        anchors {
+            right: progressBar.right; top: progressBar.bottom
+        }
+        font.pixelSize: platformStyle.fontSizeSmall
+        color: platformStyle.colorNormalMid
+        text: currentMusic ? Util.formatTime(currentMusic.musicDuration) : "00:00"
+    }
+
+    Column {
+        anchors {
+            bottom: controlButton.top; bottomMargin: platformStyle.paddingLarge * 2
+            horizontalCenter: parent.horizontalCenter
+        }
+        spacing: platformStyle.paddingMedium
+        Text {
+            anchors.horizontalCenter: parent.horizontalCenter
+            color: platformStyle.colorNormalLight
+            font.pixelSize: platformStyle.fontSizeLarge
+            text: currentMusic ? currentMusic.musicName : ""
+        }
+        Text {
+            anchors.horizontalCenter: parent.horizontalCenter
+            color: platformStyle.colorNormalMid
+            font.pixelSize: platformStyle.fontSizeSmall
+            font.weight: Font.Light
+            text: currentMusic ? currentMusic.artistsDisplayName : ""
+        }
+    }
+
+    Row {
+        id: controlButton
+
+        anchors {
+            bottom: parent.bottom; bottomMargin: platformStyle.paddingLarge
+            horizontalCenter: parent.horizontalCenter
+        }
+
+        spacing: 12
+
+        ControlButton {
+            buttonName: currentMusic && currentMusic.starred ? "loved" : "love"
+            onClicked: qmlApi.takeScreenShot()
+        }
+
+        ControlButton {
+            buttonName: audio.playing && !audio.paused ? "pause" : "play"
+            onClicked: {
+                if (audio.playing) {
+                    if (audio.paused) audio.play()
+                    else audio.pause()
+                }
+            }
+        }
+
+        ControlButton {
+            buttonName: "next"
+        }
+
+        ControlButton {
+            buttonName: "del"
         }
     }
 }

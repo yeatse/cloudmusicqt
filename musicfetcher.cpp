@@ -44,13 +44,11 @@ MusicData* MusicData::fromVariant(const QVariant &data)
 
 QString MusicData::getUrl() const
 {
-    static int __srand = 0;
-    if (!__srand) {
-        qsrand(QDateTime::currentDateTime().toTime_t());
-        __srand = 1;
-    }
-    return QString("http://m%1.music.126.net/%2/%3.%4")
-            .arg(QString::number(/*qrand() % 3 + 1*/2), getEncryptedId(dfsId), dfsId, extension);
+    uint now = QDateTime::currentDateTime().toTime_t();
+    return QString("http://m%1.music.126.net/%2/%3.%4?v=%5")
+            .arg(QString::number(now % 2 + 1),
+                 getEncryptedId(dfsId), dfsId, extension,
+                 QString::number(now % 1000000000));
 }
 
 ArtistData* ArtistData::fromVariant(const QVariant &data)
@@ -131,6 +129,40 @@ int MusicInfo::fileSize(Quality quality) const
     return data ? data->size : 0;
 }
 
+QString MusicInfo::musicName() const
+{
+    return name;
+}
+
+int MusicInfo::musicDuration() const
+{
+    return duration;
+}
+
+bool MusicInfo::isStarred() const
+{
+    return starred;
+}
+
+QString MusicInfo::albumName() const
+{
+    return album ? album->name : "";
+}
+
+QString MusicInfo::albumImageUrl() const
+{
+    return album ? album->picUrl : "";
+}
+
+QString MusicInfo::artistsDisplayName() const
+{
+    QStringList list;
+    foreach (ArtistData* artist, artists) {
+        list.append(artist->name);
+    }
+    return list.join(",");
+}
+
 MusicFetcher::MusicFetcher(QObject *parent) : QObject(parent),
     mNetworkAccessManager(0), mParser(new QJson::Parser),
     isComponentComplete(false), mLastError(0)
@@ -187,6 +219,24 @@ void MusicFetcher::loadRecommend(int offset, bool total, int limit)
 
     mLastError = 0;
     emit loadingChanged();
+}
+
+void MusicFetcher::loadFromFetcher(MusicFetcher *other)
+{
+    if (!other || this == other) return;
+
+    reset();
+
+    bool changed = false;
+    foreach (MusicInfo* info, other->mDataList) {
+        MusicInfo* copy = createDataFromMap(info->rawData);
+        if (copy) {
+            changed = true;
+            mDataList.append(copy);
+        }
+    }
+    if (changed)
+        emit dataChanged();
 }
 
 MusicInfo* MusicFetcher::dataAt(const int &index) const
@@ -279,6 +329,8 @@ MusicInfo* MusicFetcher::createDataFromMap(const QVariant &data)
 
     MusicInfo* result = new MusicInfo(this);
     const QVariantMap& map = data.toMap();
+
+    result->rawData = data;
 
     result->starred = map.value("starred").toBool();
     result->name = map.value("name").toString();

@@ -2,8 +2,8 @@
 #define MUSICFETCHER_H
 
 #include <QObject>
-#include <QList>
 #include <QPointer>
+#include <QVariant>
 #include <QDeclarativeParserStatus>
 
 class QNetworkAccessManager;
@@ -52,6 +52,12 @@ class MusicInfo : public QObject
 {
     Q_OBJECT
     Q_ENUMS(Quality)
+    Q_PROPERTY(QString musicName READ musicName CONSTANT)
+    Q_PROPERTY(int musicDuration READ musicDuration CONSTANT)
+    Q_PROPERTY(bool starred READ isStarred NOTIFY starredChanged)
+    Q_PROPERTY(QString albumName READ albumName CONSTANT)
+    Q_PROPERTY(QString albumImageUrl READ albumImageUrl CONSTANT)
+    Q_PROPERTY(QString artistsDisplayName READ artistsDisplayName CONSTANT)
 public:
     enum Quality { LowQuality, MiddleQuality, HighQuality };
 
@@ -61,7 +67,20 @@ public:
     Q_INVOKABLE QString getUrl(Quality quality) const;
     Q_INVOKABLE int fileSize(Quality quality) const;
 
+    QString musicName() const;
+    int musicDuration() const;
+    bool isStarred() const;
+
+    QString albumName() const;
+    QString albumImageUrl() const;
+    QString artistsDisplayName() const;
+
+signals:
+    void starredChanged();
+
 private:
+    QVariant rawData;
+
     int id;
     int duration;
     bool starred;
@@ -94,6 +113,9 @@ public:
 
     Q_INVOKABLE void loadPrivateFM();
     Q_INVOKABLE void loadRecommend(int offset = 0, bool total = true, int limit = 20);
+
+    Q_INVOKABLE void loadFromFetcher(MusicFetcher* other = 0);
+
     Q_INVOKABLE MusicInfo* dataAt(const int& index) const;
     Q_INVOKABLE void reset();
 

@@ -6,6 +6,8 @@ import "../js/api.js" as Api
 Page {
     id: page
 
+    orientationLock: PageOrientation.LockPortrait
+
     tools: ToolBarLayout {
         ToolButton {
             iconSource: "toolbar-back"
@@ -23,6 +25,7 @@ Page {
         anchors { fill: parent; topMargin: viewHeader.height }
         contentWidth: webView.width
         contentHeight: webView.height
+        boundsBehavior: Flickable.DragOverBounds
         WebView {
             id: webView
             contentsScale: 1.1

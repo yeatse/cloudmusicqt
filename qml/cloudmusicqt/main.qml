@@ -2,21 +2,17 @@ import QtQuick 1.1
 import com.nokia.symbian 1.1
 import com.nokia.extras 1.1
 import QtMobility.systeminfo 1.1
+import com.yeatse.cloudmusic 1.0
 
 PageStackWindow {
     id: app
 
     focus: true
-
     platformSoftwareInputPanelEnabled: true
 
     initialPage: MainPage {
         id: mainPage
         tools: mainTools
-    }
-
-    PlayerPage {
-        id: playerPage
     }
 
     function showMessage(msg) {
@@ -27,6 +23,11 @@ PageStackWindow {
     QtObject {
         id: internal
 
+        function initialize() {
+            resetBackground()
+            user.initialize()
+        }
+
         function resetBackground() {
             var bgColor = "#313131"
             if (app.hasOwnProperty("color")) {
@@ -36,12 +37,17 @@ PageStackWindow {
                 for (var i = app.children.length - 1; i >= 0; i--) {
                     var child = app.children[i]
                     if (child != volumeIndicator && child.hasOwnProperty("color")) {
+                        child.z = -2
                         child.color = bgColor
                         break
                     }
                 }
             }
         }
+    }
+
+    CloudMusicUser {
+        id: user
     }
 
     DeviceInfo {
@@ -72,10 +78,36 @@ PageStackWindow {
 
         ToolButton {
             iconSource: "toolbar-search"
+            onClicked: qmlApi.takeScreenShot()
+        }
+
+        ToolButton {
+            iconSource: "toolbar-mediacontrol-play"
+            onClicked: player.bringToFront()
         }
 
         ToolButton {
             iconSource: "toolbar-settings"
+        }
+    }
+
+    PlayerPage {
+        id: player
+    }
+
+    BlurredItem {
+        id: background
+        z: -1
+        anchors.fill: parent
+        source: backgroundImage.status == Image.Ready ? backgroundImage : null
+
+        Image {
+            id: backgroundImage
+            anchors.fill: parent
+            asynchronous: true
+            fillMode: Image.PreserveAspectCrop
+            source: player.currentMusic ? player.currentMusic.albumImageUrl : ""
+            visible: false
         }
     }
 
@@ -84,5 +116,5 @@ PageStackWindow {
     Keys.onUpPressed: volumeIndicator.volumeUp()
     Keys.onDownPressed: volumeIndicator.volumeDown()
 
-    Component.onCompleted: internal.resetBackground()
+    Component.onCompleted: internal.initialize()
 }

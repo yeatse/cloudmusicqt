@@ -14,13 +14,15 @@ HEADERS += \
     networkaccessmanagerfactory.h \
     singletonbase.h \
     userconfig.h \
-    musicfetcher.h
+    musicfetcher.h \
+    blurreditem.h
 
 SOURCES += main.cpp \
     qmlapi.cpp \
     networkaccessmanagerfactory.cpp \
     userconfig.cpp \
-    musicfetcher.cpp
+    musicfetcher.cpp \
+    blurreditem.cpp
 
 include(qjson/qjson.pri)
 DEFINES += QJSON_MAKEDLL

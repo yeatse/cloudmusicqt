@@ -6,8 +6,11 @@
 #include "networkaccessmanagerfactory.h"
 #include "qmlapi.h"
 #include "musicfetcher.h"
+#include "blurreditem.h"
 
-#ifdef Q_WS_SIMULATOR
+#define PROXY_HOST "192.168.1.108"
+
+#ifdef PROXY_HOST
 #include <QNetworkProxy>
 #endif
 
@@ -22,12 +25,13 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     app->setOrganizationName("Yeatse");
     app->setApplicationVersion(VER);
 
-#ifdef Q_WS_SIMULATOR
-    QNetworkProxy::setApplicationProxy(QNetworkProxy(QNetworkProxy::HttpProxy, "192.168.1.64", 8888));
+#ifdef PROXY_HOST
+    QNetworkProxy::setApplicationProxy(QNetworkProxy(QNetworkProxy::HttpProxy, PROXY_HOST, 8888));
 #endif
 
     qmlRegisterType<MusicInfo>("com.yeatse.cloudmusic", 1, 0, "MusicInfo");
     qmlRegisterType<MusicFetcher>("com.yeatse.cloudmusic", 1, 0, "MusicFetcher");
+    qmlRegisterType<BlurredItem>("com.yeatse.cloudmusic", 1, 0, "BlurredItem");
 
     QWebSettings::globalSettings()->setUserStyleSheetUrl(QUrl::fromLocalFile("qml/js/default_theme.css"));
 
@@ -36,6 +40,7 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     viewer->setAttribute(Qt::WA_NoSystemBackground);
     viewer->viewport()->setAttribute(Qt::WA_OpaquePaintEvent);
     viewer->viewport()->setAttribute(Qt::WA_NoSystemBackground);
+    viewer->setOrientation(QmlApplicationViewer::ScreenOrientationLockPortrait);
 
     QScopedPointer<NetworkAccessManagerFactory> factory(new NetworkAccessManagerFactory);
     viewer->engine()->setNetworkAccessManagerFactory(factory.data());
