@@ -13,19 +13,12 @@
 
 static const char* ApiBaseUrl = "http://music.163.com/api";
 
-static QByteArray getEncryptedId(const QByteArray& songId)
-{
-    QByteArray result;
-    QByteArray magic = "3go8&$8*3*3h0k(2)2";
-    for (int i = 0; i < songId.length(); i++)
-        result[i] = songId.at(i) ^ magic.at(i % magic.length());
-    result = QCryptographicHash::hash(result, QCryptographicHash::Md5).toBase64();
-    result.replace('/', '_');
-    result.replace('+', "-");
-    return result;
-}
+static const char* RequestOptionQuery = "query";
+static const char* RequestOptionReload = "reload";
 
-MusicData* MusicData::fromVariant(const QVariant &data)
+static const char* OptionQueryPlayList = "playlist";
+
+MusicData* MusicData::fromVariant(const QVariant &data, int ver)
 {
     if (data.isNull() || !data.canConvert(QVariant::Map))
         return 0;
@@ -33,22 +26,22 @@ MusicData* MusicData::fromVariant(const QVariant &data)
     MusicData* result = new MusicData;
     const QVariantMap& map = data.toMap();
 
-    result->id = map.value("id").toInt();
-    result->size = map.value("size").toInt();
-    result->extension = map.value("extension").toString();
-    result->dfsId = map.value("dfsId").toByteArray();
-    result->bitrate = map.value("bitrate").toInt();
+    if (ver == 0) {
+        result->id = map.value("id").toInt();
+        result->size = map.value("size").toInt();
+        result->extension = map.value("extension").toString();
+        result->dfsId = map.value("dfsId").toByteArray();
+        result->bitrate = map.value("bitrate").toInt();
+    }
+    else {
+        result->id = 0;
+        result->size = map.value("size").toInt();
+        result->extension = "mp3";
+        result->dfsId = map.value("fid").toByteArray();
+        result->bitrate = map.value("br").toInt();
+    }
 
     return result;
-}
-
-QString MusicData::getUrl() const
-{
-    uint now = QDateTime::currentDateTime().toTime_t();
-    return QString("http://m%1.music.126.net/%2/%3.%4?v=%5")
-            .arg(QString::number(now % 2 + 1),
-                 getEncryptedId(dfsId), dfsId, extension,
-                 QString::number(now % 1000000000));
 }
 
 ArtistData* ArtistData::fromVariant(const QVariant &data)
@@ -71,7 +64,7 @@ AlbumData::~AlbumData()
     qDeleteAll(artists);
 }
 
-AlbumData* AlbumData::fromVariant(const QVariant &data)
+AlbumData* AlbumData::fromVariant(const QVariant &data, int ver)
 {
     if (data.isNull() || !data.canConvert(QVariant::Map))
         return 0;
@@ -79,20 +72,27 @@ AlbumData* AlbumData::fromVariant(const QVariant &data)
     AlbumData* result = new AlbumData;
     const QVariantMap& map = data.toMap();
 
-    result->id = map.value("id").toInt();
-    result->name = map.value("name").toString();
-    result->picUrl = map.value("picUrl").toString();
+    if (ver == 0) {
+        result->id = map.value("id").toInt();
+        result->name = map.value("name").toString();
+        result->picUrl = map.value("picUrl").toString();
 
-    foreach (const QVariant& artistData, map.value("artists").toList()) {
-        ArtistData* artist = ArtistData::fromVariant(artistData);
-        if (artist) result->artists.append(artist);
+        foreach (const QVariant& artistData, map.value("artists").toList()) {
+            ArtistData* artist = ArtistData::fromVariant(artistData);
+            if (artist) result->artists.append(artist);
+        }
+    }
+    else {
+        result->id = map.value("id").toInt();
+        result->name = map.value("name").toString();
+        result->picUrl = MusicInfo::getPictureUrl(map.value("picStr").toByteArray());
     }
 
     return result;
 }
 
 MusicInfo::MusicInfo(QObject *parent) : QObject(parent),
-    lMusic(0), mMusic(0), hMusic(0), album(0)
+    dataVersion(0), lMusic(0), mMusic(0), hMusic(0), album(0)
 {
 }
 
@@ -114,7 +114,7 @@ QString MusicInfo::getUrl(Quality quality) const
     else if (quality == HighQuality) data = hMusic;
     else data = 0;
 
-    return data ? data->getUrl() : QString();
+    return data ? getMusicUrl(data->dfsId, data->extension) : "";
 }
 
 int MusicInfo::fileSize(Quality quality) const
@@ -163,6 +163,33 @@ QString MusicInfo::artistsDisplayName() const
     return list.join(",");
 }
 
+static QByteArray getEncryptedId(const QByteArray& songId)
+{
+    QByteArray result;
+    QByteArray magic = "3go8&$8*3*3h0k(2)2";
+    for (int i = 0; i < songId.length(); i++)
+        result[i] = songId.at(i) ^ magic.at(i % magic.length());
+    result = QCryptographicHash::hash(result, QCryptographicHash::Md5).toBase64();
+    result.replace('/', '_');
+    result.replace('+', "-");
+    return result;
+}
+
+QString MusicInfo::getMusicUrl(const QByteArray &id, const QString &ext)
+{
+    static int control = 0;
+    return QString("http://m%1.music.126.net/%2/%3.%4?v=%5")
+            .arg(QString::number(control++ % 2 + 1), getEncryptedId(id), id, ext,
+                 QString::number(QDateTime::currentDateTime().toTime_t() % 1000000000));
+}
+
+QString MusicInfo::getPictureUrl(const QByteArray &id)
+{
+    static int control = 0;
+    return QString("http://p%1.music.126.net/%2/%3.jpg")
+            .arg(QString::number(control++ % 2 + 3), getEncryptedId(id), id);
+}
+
 MusicFetcher::MusicFetcher(QObject *parent) : QObject(parent),
     mNetworkAccessManager(0), mParser(new QJson::Parser),
     isComponentComplete(false), mLastError(0)
@@ -193,7 +220,7 @@ void MusicFetcher::loadPrivateFM()
 
     QUrl url(QString(ApiBaseUrl).append("/radio/get"));
     mCurrentReply = mNetworkAccessManager->get(QNetworkRequest(url));
-    mCurrentReply->setProperty("query", "data");
+    mCurrentReply->setProperty(RequestOptionQuery, "data");
     connect(mCurrentReply, SIGNAL(finished()), SLOT(requestFinished()), Qt::QueuedConnection);
 
     mLastError = 0;
@@ -213,9 +240,28 @@ void MusicFetcher::loadRecommend(int offset, bool total, int limit)
     url.addEncodedQueryItem("limit", QByteArray::number(limit));
 
     mCurrentReply = mNetworkAccessManager->get(QNetworkRequest(url));
-    mCurrentReply->setProperty("query", "recommend");
-    mCurrentReply->setProperty("reload", true);
+    mCurrentReply->setProperty(RequestOptionQuery, "recommend");
+    mCurrentReply->setProperty(RequestOptionReload, true);
     connect(mCurrentReply, SIGNAL(finished()), SLOT(requestFinished()), Qt::QueuedConnection);
+
+    mLastError = 0;
+    emit loadingChanged();
+}
+
+void MusicFetcher::loadPlayList(const int &listId)
+{
+    if (!isComponentComplete) return;
+
+    if (mCurrentReply && mCurrentReply->isRunning())
+        mCurrentReply->abort();
+
+    QUrl url(QString(ApiBaseUrl).append("/playlist/detail"));
+    url.addEncodedQueryItem("id", QByteArray::number(listId));
+
+    mCurrentReply = mNetworkAccessManager->get(QNetworkRequest(url));
+    mCurrentReply->setProperty(RequestOptionQuery, OptionQueryPlayList);
+    mCurrentReply->setProperty(RequestOptionReload, true);
+    connect(mCurrentReply, SIGNAL(finished()), SLOT(requestFinished()));
 
     mLastError = 0;
     emit loadingChanged();
@@ -229,7 +275,7 @@ void MusicFetcher::loadFromFetcher(MusicFetcher *other)
 
     bool changed = false;
     foreach (MusicInfo* info, other->mDataList) {
-        MusicInfo* copy = createDataFromMap(info->rawData);
+        MusicInfo* copy = createDataFromMap(info->rawData, info->dataVersion);
         if (copy) {
             changed = true;
             mDataList.append(copy);
@@ -293,7 +339,7 @@ void MusicFetcher::requestFinished()
         return;
     }
 
-    if (mCurrentReply->property("reload").toBool() && !mDataList.isEmpty()) {
+    if (mCurrentReply->property(RequestOptionReload).toBool() && !mDataList.isEmpty()) {
         qDeleteAll(mDataList);
         mDataList.clear();
         emit dataChanged();
@@ -308,21 +354,34 @@ void MusicFetcher::requestFinished()
     mLastError = 0;
 
     bool changed = false;
-    QVariantList list = resp.value(mCurrentReply->property("query").toString()).toList();
-    foreach (const QVariant item, list) {
-        MusicInfo* data = createDataFromMap(item);
+    QVariantList list;
+    int dataVer;
+
+    QString query = mCurrentReply->property(RequestOptionQuery).toString();
+    if (query == OptionQueryPlayList) {
+        list = resp.value("result").toMap().value("tracks").toList();
+        dataVer = 0;
+    }
+    else {
+        list = resp.value(query).toList();
+        dataVer = 0;
+    }
+
+    foreach (const QVariant& item, list) {
+        MusicInfo* data = createDataFromMap(item, dataVer);
         if (data) {
             changed = true;
             mDataList.append(data);
         }
     }
+
     if (changed)
         emit dataChanged();
 
     emit loadingChanged();
 }
 
-MusicInfo* MusicFetcher::createDataFromMap(const QVariant &data)
+MusicInfo* MusicFetcher::createDataFromMap(const QVariant &data, int ver)
 {
     if (data.isNull() || !data.canConvert(QVariant::Map))
         return 0;
@@ -331,22 +390,43 @@ MusicInfo* MusicFetcher::createDataFromMap(const QVariant &data)
     const QVariantMap& map = data.toMap();
 
     result->rawData = data;
+    result->dataVersion = ver;
 
-    result->starred = map.value("starred").toBool();
-    result->name = map.value("name").toString();
-    result->id = map.value("id").toInt();
-    result->duration = map.value("duration").toInt();
-    result->commentThreadId = map.value("commentThreadId").toString();
+    if (ver == 0) {
+        result->starred = map.value("starred").toBool();
+        result->name = map.value("name").toString();
+        result->id = map.value("id").toInt();
+        result->duration = map.value("duration").toInt();
+        result->commentThreadId = map.value("commentThreadId").toString();
 
-    result->lMusic = MusicData::fromVariant(map.value("lMusic"));
-    result->mMusic = MusicData::fromVariant(map.value("mMusic"));
-    result->hMusic = MusicData::fromVariant(map.value("hMusic"));
+        result->lMusic = MusicData::fromVariant(map.value("lMusic"));
+        result->mMusic = MusicData::fromVariant(map.value("mMusic"));
+        result->hMusic = MusicData::fromVariant(map.value("hMusic"));
 
-    result->album = AlbumData::fromVariant(map.value("album"));
+        result->album = AlbumData::fromVariant(map.value("album"));
 
-    foreach (const QVariant& artistData, map.value("artists").toList()) {
-        ArtistData* artist = ArtistData::fromVariant(artistData);
-        if (artist) result->artists.append(artist);
+        foreach (const QVariant& artistData, map.value("artists").toList()) {
+            ArtistData* artist = ArtistData::fromVariant(artistData);
+            if (artist) result->artists.append(artist);
+        }
+    }
+    else {
+        result->starred = false; // TODO: load from local database
+        result->name = map.value("name").toString();
+        result->id = map.value("id").toInt();
+        result->duration = map.value("dt").toInt();
+        result->commentThreadId = QString("R_SO_4_%1").arg(result->id);
+
+        result->lMusic = MusicData::fromVariant(map.value("l"), ver);
+        result->mMusic = MusicData::fromVariant(map.value("m"), ver);
+        result->hMusic = MusicData::fromVariant(map.value("h"), ver);
+
+        result->album = AlbumData::fromVariant(map.value("al"), ver);
+
+        foreach (const QVariant& ar, map.value("ar").toList()) {
+            ArtistData* artist = ArtistData::fromVariant(ar);
+            if (artist) result->artists.append(artist);
+        }
     }
 
     return result;

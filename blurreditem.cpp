@@ -32,11 +32,15 @@ void BlurredItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
 {
     if (mImage.isNull() && mSource && mSource->width() >= 1 && mSource->height() >= 1) {
         mImage = QImage((int)mSource->width(), (int)mSource->height(), QImage::Format_ARGB32);
-        QPainter p(&mImage);
-        mSource->paint(&p, option, 0);
 
-        QImage copy = mImage;
-        qt_blurImage(&p, copy, 50, true, false);
+        QImage srcImg = mImage;
+        {
+            QPainter p(&srcImg);
+            mSource->paint(&p, option, 0);
+        }
+
+        QPainter p(&mImage);
+        qt_blurImage(&p, srcImg, 50, true, false);
 
         p.fillRect(mImage.rect(), QColor(0, 0, 0, 160));
     }

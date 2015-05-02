@@ -171,99 +171,114 @@ Page {
         }
     }
 
-    Image {
-        id: coverImage
-        anchors {
-            top: parent.top; topMargin: platformStyle.graphicSizeSmall
-            horizontalCenter: parent.horizontalCenter
-        }
-        width: Math.min(screen.width, screen.height) - platformStyle.graphicSizeSmall * 2
-        height: width
-        fillMode: Image.PreserveAspectCrop
-        source: currentMusic ? currentMusic.albumImageUrl : ""
-    }
+    Flickable {
+        id: view
+        anchors.fill: parent
+        contentWidth: parent.width
+        contentHeight: Math.max(parent.height, 550)
+        boundsBehavior: Flickable.StopAtBounds
 
-    ProgressBar {
-        id: progressBar
-        anchors {
-            left: coverImage.left; right: coverImage.right
-            top: coverImage.bottom
+        Image {
+            id: coverImage
+            anchors {
+                top: parent.top; topMargin: platformStyle.graphicSizeSmall
+                horizontalCenter: parent.horizontalCenter
+            }
+            width: Math.min(screen.width, screen.height) - platformStyle.graphicSizeSmall * 2
+            height: width
+            fillMode: Image.PreserveAspectCrop
+            source: currentMusic ? currentMusic.albumImageUrl + "?param=640y640&quality=100" : ""
         }
-        value: audio.position / audio.duration * 1.0
-        indeterminate: audio.status == Audio.Loading || audio.status == Audio.Stalled
-                       || (!audio.playing && musicFetcher.loading)
-    }
 
-    Text {
-        anchors {
-            left: progressBar.left; top: progressBar.bottom
+        ProgressBar {
+            id: progressBar
+            anchors {
+                left: coverImage.left; right: coverImage.right
+                top: coverImage.bottom
+            }
+            value: audio.position / audio.duration * 1.0
+            indeterminate: audio.status == Audio.Loading || audio.status == Audio.Stalled
+                           || (!audio.playing && musicFetcher.loading)
         }
-        font.pixelSize: platformStyle.fontSizeSmall
-        color: platformStyle.colorNormalMid
-        text: Util.formatTime(audio.position)
-    }
 
-    Text {
-        anchors {
-            right: progressBar.right; top: progressBar.bottom
-        }
-        font.pixelSize: platformStyle.fontSizeSmall
-        color: platformStyle.colorNormalMid
-        text: currentMusic ? Util.formatTime(currentMusic.musicDuration) : "00:00"
-    }
-
-    Column {
-        anchors {
-            bottom: controlButton.top; bottomMargin: platformStyle.paddingLarge * 2
-            horizontalCenter: parent.horizontalCenter
-        }
-        spacing: platformStyle.paddingMedium
         Text {
-            anchors.horizontalCenter: parent.horizontalCenter
-            color: platformStyle.colorNormalLight
-            font.pixelSize: platformStyle.fontSizeLarge
-            text: currentMusic ? currentMusic.musicName : ""
-        }
-        Text {
-            anchors.horizontalCenter: parent.horizontalCenter
-            color: platformStyle.colorNormalMid
+            id: positionLabel
+            anchors {
+                left: progressBar.left; top: progressBar.bottom
+            }
             font.pixelSize: platformStyle.fontSizeSmall
-            font.weight: Font.Light
-            text: currentMusic ? currentMusic.artistsDisplayName : ""
-        }
-    }
-
-    Row {
-        id: controlButton
-
-        anchors {
-            bottom: parent.bottom; bottomMargin: platformStyle.paddingLarge
-            horizontalCenter: parent.horizontalCenter
+            color: platformStyle.colorNormalMid
+            text: Util.formatTime(audio.position)
         }
 
-        spacing: 12
-
-        ControlButton {
-            buttonName: currentMusic && currentMusic.starred ? "loved" : "love"
-            onClicked: qmlApi.takeScreenShot()
+        Text {
+            anchors {
+                right: progressBar.right; top: progressBar.bottom
+            }
+            font.pixelSize: platformStyle.fontSizeSmall
+            color: platformStyle.colorNormalMid
+            text: currentMusic ? Util.formatTime(currentMusic.musicDuration) : "00:00"
         }
-
-        ControlButton {
-            buttonName: audio.playing && !audio.paused ? "pause" : "play"
-            onClicked: {
-                if (audio.playing) {
-                    if (audio.paused) audio.play()
-                    else audio.pause()
+        Item {
+            anchors {
+                top: positionLabel.bottom; bottom: controlButton.top
+                left: parent.left; right: parent.right
+            }
+            Column {
+                anchors.centerIn: parent
+                spacing: platformStyle.paddingMedium
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    color: platformStyle.colorNormalLight
+                    font.pixelSize: platformStyle.fontSizeLarge
+                    text: currentMusic ? currentMusic.musicName : ""
+                }
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    color: platformStyle.colorNormalMid
+                    font.pixelSize: platformStyle.fontSizeSmall
+                    font.weight: Font.Light
+                    text: currentMusic ? currentMusic.artistsDisplayName : ""
                 }
             }
         }
 
-        ControlButton {
-            buttonName: "next"
-        }
+        Row {
+            id: controlButton
 
-        ControlButton {
-            buttonName: "del"
+            anchors {
+                bottom: parent.bottom; bottomMargin: platformStyle.paddingLarge
+                horizontalCenter: parent.horizontalCenter
+            }
+
+            spacing: 12
+
+            ControlButton {
+                buttonName: currentMusic && currentMusic.starred ? "loved" : "love"
+                onClicked: qmlApi.takeScreenShot()
+            }
+
+            ControlButton {
+                buttonName: audio.playing && !audio.paused ? "pause" : "play"
+                onClicked: {
+                    if (audio.playing) {
+                        if (audio.paused) audio.play()
+                        else audio.pause()
+                    }
+                }
+            }
+
+            ControlButton {
+                buttonName: "next"
+                onClicked: {
+                    if (audio.status != Audio.Loading)
+                        audio.playNextMusic()
+                }
+            }
+
+            ControlButton {
+                buttonName: "del"
+            }
         }
     }
 }

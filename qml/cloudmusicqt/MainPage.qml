@@ -25,9 +25,7 @@ Page {
                         verticalCenter: parent.verticalCenter
                     }
                     iconSource: "gfx/contacts.svg"
-                    onClicked: {
-                        pageStack.push(Qt.resolvedUrl("LoginPage.qml"))
-                    }
+                    onClicked: pageStack.push(Qt.resolvedUrl( user.loggedIn ? "LoginPage.qml" : "LoginPage.qml" ))
                 }
             }
 
@@ -39,9 +37,24 @@ Page {
             }
 
             CategoryItem {
-                iconSource: "gfx/private_radio_icon.png"
+                iconSource: "gfx/icon_background.png"
                 title: "个性化推荐"
                 subTitle: "根据你的口味生成，每天更新"
+
+                Text {
+                    anchors {
+                        left: parent.left; top: parent.top; bottom: parent.bottom
+                        margins: platformStyle.paddingLarge
+                    }
+                    width: height
+                    color: "white"
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    font.pixelSize: platformStyle.fontSizeSmall - 2
+                    text: Qt.formatDateTime(new Date(), "dddd\nM.d")
+                }
+
+                onClicked: pageStack.push(Qt.resolvedUrl("RecommendPage.qml"))
             }
         }
     }

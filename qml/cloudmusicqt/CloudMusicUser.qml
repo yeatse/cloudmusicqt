@@ -13,13 +13,17 @@ QtObject {
         loggedIn = token != ""
         userChanged()
         if (loggedIn) {
-            var s = new Function()
-            var f = function(err) {
-                console.log("refresh token failed: ", f)
-                loggedIn = false
-                userChanged()
-            }
-            Api.refreshToken(token, s, f)
+            refreshUserToken(token)
         }
+    }
+
+    function refreshUserToken(token) {
+        var s = new Function()
+        var f = function(err) {
+            console.log("refresh token failed: ", f)
+            loggedIn = false
+            userChanged()
+        }
+        Api.refreshToken(token, s, f)
     }
 }

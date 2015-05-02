@@ -24,7 +24,6 @@ PageStackWindow {
         id: internal
 
         function initialize() {
-            resetBackground()
             user.initialize()
         }
 
@@ -78,11 +77,10 @@ PageStackWindow {
 
         ToolButton {
             iconSource: "toolbar-search"
-            onClicked: qmlApi.takeScreenShot()
         }
 
         ToolButton {
-            iconSource: "toolbar-mediacontrol-play"
+            iconSource: "gfx/logo_icon.png"
             onClicked: player.bringToFront()
         }
 
@@ -106,9 +104,15 @@ PageStackWindow {
             anchors.fill: parent
             asynchronous: true
             fillMode: Image.PreserveAspectCrop
-            source: player.currentMusic ? player.currentMusic.albumImageUrl : ""
+            source: player.currentMusic ? player.currentMusic.albumImageUrl + "?param=640y640&quality=100"
+                                        : ""
             visible: false
         }
+    }
+
+    Keys.onPressed: {
+        if (event.key == Qt.Key_Menu)
+            qmlApi.takeScreenShot()
     }
 
     Keys.onVolumeUpPressed: volumeIndicator.volumeUp()

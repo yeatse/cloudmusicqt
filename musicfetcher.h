@@ -22,8 +22,7 @@ public:
     QByteArray dfsId;
     int bitrate;
 
-    static MusicData* fromVariant(const QVariant& data);
-    QString getUrl() const;
+    static MusicData* fromVariant(const QVariant& data, int ver = 0);
 };
 
 class ArtistData
@@ -44,7 +43,7 @@ public:
     QString picUrl;
     QList<ArtistData*> artists;
 
-    static AlbumData* fromVariant(const QVariant& data);
+    static AlbumData* fromVariant(const QVariant& data, int ver = 0);
     ~AlbumData();
 };
 
@@ -75,11 +74,15 @@ public:
     QString albumImageUrl() const;
     QString artistsDisplayName() const;
 
+    static QString getMusicUrl(const QByteArray& id, const QString& ext = "mp3");
+    static QString getPictureUrl(const QByteArray& id);
+
 signals:
     void starredChanged();
 
 private:
     QVariant rawData;
+    int dataVersion;
 
     int id;
     int duration;
@@ -113,6 +116,7 @@ public:
 
     Q_INVOKABLE void loadPrivateFM();
     Q_INVOKABLE void loadRecommend(int offset = 0, bool total = true, int limit = 20);
+    Q_INVOKABLE void loadPlayList(const int &listId);
 
     Q_INVOKABLE void loadFromFetcher(MusicFetcher* other = 0);
 
@@ -131,7 +135,7 @@ private slots:
     void requestFinished();
 
 private:
-    MusicInfo* createDataFromMap(const QVariant& data);
+    MusicInfo* createDataFromMap(const QVariant& data, int ver = 0);
 
 private:
     QList<MusicInfo*> mDataList;

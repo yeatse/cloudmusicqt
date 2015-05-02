@@ -31,7 +31,7 @@ Page {
             contentsScale: 1.1
             preferredWidth: flickable.width / contentsScale
             preferredHeight: flickable.height / contentsScale
-            url: Api.CloundMusicApi.SNS_AUTH_SINA
+            url: Api.CloudMusicApi.SNS_AUTH_SINA
 
             javaScriptWindowObjects: QtObject {
                 WebView.windowObjectName: "top"

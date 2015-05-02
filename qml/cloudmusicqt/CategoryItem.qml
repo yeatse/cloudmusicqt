@@ -1,7 +1,7 @@
 import QtQuick 1.1
 import com.nokia.symbian 1.1
 
-Item {
+ListItemFrame {
     id: root
 
     property alias iconSource: icon.source
@@ -25,7 +25,8 @@ Item {
 
     Column {
         anchors {
-            left: icon.right; leftMargin: platformStyle.paddingMedium
+            left: iconSource == "" ? parent.left : icon.right
+            leftMargin: iconSource == "" ? platformStyle.paddingLarge : platformStyle.paddingMedium
             verticalCenter: parent.verticalCenter
         }
         spacing: platformStyle.paddingSmall

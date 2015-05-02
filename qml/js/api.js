@@ -2,9 +2,10 @@
 
 var ApiBaseUrl = "http://music.163.com/api";
 
-var CloundMusicApi = {
+var CloudMusicApi = {
     SNS_AUTH_SINA: ApiBaseUrl + "/sns/authorize/?snsType=2&clientType=pc",
-    LOGIN_TOKEN_REFRESH: ApiBaseUrl + "/login/token/refresh"
+    LOGIN_TOKEN_REFRESH: ApiBaseUrl + "/login/token/refresh",
+    DISCOVERY_RECOMMEND_RESOURCE: ApiBaseUrl + "/v1/discovery/recommend/resource"
 };
 
 var ApiRequest = function(url, method) {
@@ -63,7 +64,13 @@ ApiRequest.prototype.sendRequest = function(onSuccess, onFailure) {
         };
 
 function refreshToken(token, onSuccess, onFailure) {
-    var req = new ApiRequest(CloundMusicApi.LOGIN_TOKEN_REFRESH, "POST");
+    var req = new ApiRequest(CloudMusicApi.LOGIN_TOKEN_REFRESH, "POST");
     req.setParams({ cookieToken: token });
+    req.sendRequest(onSuccess, onFailure);
+}
+
+function getRecommendResource(limit, onSuccess, onFailure) {
+    var req = new ApiRequest(CloudMusicApi.DISCOVERY_RECOMMEND_RESOURCE);
+    req.setQuery({limit: limit});
     req.sendRequest(onSuccess, onFailure);
 }
