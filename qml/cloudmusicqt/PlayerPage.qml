@@ -33,10 +33,11 @@ Page {
     }
 
     function playFetcher(type, param, fetcher, index) {
-        if (type == callerType && param == callerParam
-                && currentIndex == index && audio.playing && audio.paused)
+        if (type == callerType && qmlApi.compareVariant(param, callerParam)
+                && currentIndex == index && audio.playing)
         {
-            audio.play()
+            if (audio.paused) audio.play()
+            else bringToFront()
             return
         }
 

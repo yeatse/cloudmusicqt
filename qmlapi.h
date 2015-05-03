@@ -30,6 +30,8 @@ public:
 
     Q_INVOKABLE QVariant jsonParse(const QString& text);
 
+    Q_INVOKABLE bool compareVariant(const QVariant& left, const QVariant& right);
+
 #ifdef Q_OS_SYMBIAN
     void ProcessCommandL(TInt aCommandId);
 #endif

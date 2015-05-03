@@ -1,30 +1,15 @@
 #include "networkaccessmanagerfactory.h"
 
 #include <QNetworkAccessManager>
-#include <QNetworkRequest>
 #include <QSettings>
 #include <QSystemDeviceInfo>
 #include <QDebug>
 
 #include "userconfig.h"
 
-class NetworkAccessManager : public QNetworkAccessManager
-{
-public:
-    explicit NetworkAccessManager(QObject* parent) : QNetworkAccessManager(parent){}
-
-protected:
-    QNetworkReply* createRequest(Operation op, const QNetworkRequest &request, QIODevice *outgoingData = 0)
-    {
-        QNetworkRequest req(request);
-        req.setRawHeader("User-Agent", "Mozilla/5.0 (Symbian; U; Nokia808; zh-CN) AppleWebKit/534.3 (KHTML, like Gecko) CloudMusic/1.0.0 Mobile Safari/534.3");
-        return QNetworkAccessManager::createRequest(op, req, outgoingData);
-    }
-};
-
 QNetworkAccessManager* NetworkAccessManagerFactory::create(QObject *parent)
 {
-    QNetworkAccessManager* manager = new NetworkAccessManager(parent);
+    QNetworkAccessManager* manager = new QNetworkAccessManager(parent);
 
     QNetworkCookieJar* cookieJar = NetworkCookieJar::Instance();
     manager->setCookieJar(cookieJar);

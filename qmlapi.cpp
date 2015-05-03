@@ -104,6 +104,11 @@ QVariant QmlApi::jsonParse(const QString &text)
     return fixVariant(mParser->parse(text.toUtf8()));
 }
 
+bool QmlApi::compareVariant(const QVariant &left, const QVariant &right)
+{
+    return left == right;
+}
+
 #ifdef Q_OS_SYMBIAN
 void QmlApi::ProcessCommandL(TInt aCommandId)
 {
