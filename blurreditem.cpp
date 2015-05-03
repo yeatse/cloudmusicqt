@@ -1,6 +1,7 @@
 #include "blurreditem.h"
 
 #include <QPainter>
+#include <QDebug>
 
 BlurredItem::BlurredItem(QDeclarativeItem *parent) :
     QDeclarativeItem(parent), mSource(0)
@@ -30,30 +31,28 @@ QT_END_NAMESPACE
 
 void BlurredItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *)
 {
-    if (mImage.isNull() && mSource && mSource->width() >= 1 && mSource->height() >= 1) {
-        mImage = QImage((int)mSource->width(), (int)mSource->height(), QImage::Format_ARGB32);
-
-        QImage srcImg = mImage;
+    if (mPixmap.isNull() && mSource && mSource->width() >= 1 && mSource->height() >= 1) {
+        QImage image = QImage((int)mSource->width(), (int)mSource->height(), QImage::Format_ARGB32);
+        QImage srcImg = image;
         {
             QPainter p(&srcImg);
             mSource->paint(&p, option, 0);
         }
-
-        QPainter p(&mImage);
+        QPainter p(&image);
         qt_blurImage(&p, srcImg, 50, true, false);
-
-        p.fillRect(mImage.rect(), QColor(0, 0, 0, 160));
+        p.fillRect(image.rect(), QColor(0, 0, 0, 160));
+        mPixmap = QPixmap::fromImage(image);
     }
 
-    if (mImage.isNull())
+    if (mPixmap.isNull())
         painter->fillRect(boundingRect(), Qt::transparent);
     else
-        painter->drawImage(boundingRect(), mImage);
+        painter->drawPixmap(boundingRect().toRect(), mPixmap);
 }
 
 void BlurredItem::refresh()
 {
-    mImage = QImage();
+    mPixmap = QPixmap();
     update();
 }
 

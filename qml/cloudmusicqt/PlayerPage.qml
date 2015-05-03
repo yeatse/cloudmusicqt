@@ -3,20 +3,25 @@ import com.nokia.symbian 1.1
 import QtMultimediaKit 1.1
 import com.yeatse.cloudmusic 1.0
 import "../js/util.js" as Util
+import "../js/api.js" as Api
 
 Page {
     id: page
 
-    property string currentListId: ""
+    property string callerType: ""
+    property variant callerParam: null
+
     property int currentIndex: -1
     property MusicInfo currentMusic: null
 
-    property string listIdPrivateFM: "PrivateFM"
+    property string callerTypePrivateFM: "PrivateFM"
 
     function playPrivateFM() {
         bringToFront()
-        if (currentListId != listIdPrivateFM || !audio.playing) {
-            currentListId = listIdPrivateFM
+        if (callerType != callerTypePrivateFM || !audio.playing) {
+            callerType = callerTypePrivateFM
+            callerParam = null
+
             musicFetcher.reset()
             musicFetcher.disconnect()
             musicFetcher.loadPrivateFM()
@@ -25,6 +30,26 @@ Page {
         else if (audio.paused) {
             audio.play()
         }
+    }
+
+    function playFetcher(type, param, fetcher, index) {
+        if (type == callerType && param == callerParam
+                && currentIndex == index && audio.playing && audio.paused)
+        {
+            audio.play()
+            return
+        }
+
+        callerType = type
+        callerParam = param
+
+        musicFetcher.disconnect()
+        musicFetcher.loadFromFetcher(fetcher)
+
+        if (audio.status == Audio.Loading)
+            audio.waitingIndex = index
+        else
+            audio.setCurrentMusic(index)
     }
 
     function bringToFront() {
@@ -45,9 +70,11 @@ Page {
         }
         ToolButton {
             iconSource: "gfx/instant_messenger_chat.svg"
+            onClicked: infoBanner.showDevelopingMsg()
         }
         ToolButton {
             iconSource: "toolbar-menu"
+            onClicked: infoBanner.showDevelopingMsg()
         }
     }
 
@@ -69,26 +96,21 @@ Page {
             if (loading) return
             disconnect()
             if (count > 0) {
-                if (audio.status == Audio.Loading) {
+                if (audio.status == Audio.Loading)
                     audio.waitingIndex = 0
-                }
-                else {
-                    audio.waitingIndex = -1
+                else
                     audio.setCurrentMusic(0)
-                }
             }
         }
 
         function privateFMListAppended() {
             if (loading) return
             disconnect()
-            if (currentListId == listIdPrivateFM && currentIndex < count - 1) {
+            if (callerType == callerTypePrivateFM && currentIndex < count - 1) {
                 if (audio.status == Audio.Loading)
                     audio.waitingIndex = currentIndex + 1
-                else {
-                    audio.waitingIndex = -1
+                else
                     audio.setCurrentMusic(currentIndex + 1)
-                }
             }
         }
     }
@@ -101,16 +123,23 @@ Page {
         volume: volumeIndicator.volume / 100
 
         function setCurrentMusic(index) {
+            waitingIndex = -1
             if (index >= 0 && index < musicFetcher.count) {
                 currentMusic = musicFetcher.dataAt(index)
                 currentIndex = index
                 audio.source = currentMusic.getUrl(MusicInfo.LowQuality)
                 audio.play()
+
+                if (app.pageStack.currentPage != page) {
+                    qmlApi.showNotification("网易云音乐",
+                                            "正在播放: %1 - %2".arg(currentMusic.artistsDisplayName).arg(currentMusic.musicName),
+                                            1)
+                }
             }
         }
 
         function playNextMusic() {
-            if (currentListId == listIdPrivateFM) {
+            if (callerType == callerTypePrivateFM) {
                 if (currentIndex >= musicFetcher.count - 2 && !musicFetcher.loading)
                     musicFetcher.loadPrivateFM()
 
@@ -120,6 +149,15 @@ Page {
                     musicFetcher.disconnect()
                     musicFetcher.loadingChanged.connect(musicFetcher.privateFMListAppended)
                 }
+            }
+            else if (musicFetcher.count == 0) {
+                playPrivateFM()
+            }
+            else {
+                if (currentIndex < musicFetcher.count - 1)
+                    setCurrentMusic(currentIndex + 1)
+                else
+                    setCurrentMusic(0)
             }
         }
 
@@ -155,10 +193,17 @@ Page {
             if (status != Audio.Loading) {
                 if (waitingIndex >= 0 && waitingIndex < musicFetcher.count) {
                     setCurrentMusic(waitingIndex)
-                    waitingIndex = -1
                     return
                 }
             }
+
+            if (status == Audio.Stalled) {
+                timeoutListener.restart()
+            }
+            else {
+                timeoutListener.stop()
+            }
+
             if (status == Audio.EndOfMedia) {
                 playNextMusic()
             }
@@ -166,9 +211,15 @@ Page {
 
         onError: {
             console.log("error occured:", debugError(), errorString, source)
-            if (error == Audio.AccessDenied)
+            if (error == Audio.ResourceError || error == Audio.FormatError || error == Audio.AccessDenied)
                 playNextMusic()
         }
+    }
+
+    Timer {
+        id: timeoutListener
+        interval: 10 * 1000
+        onTriggered: audio.playNextMusic()
     }
 
     Flickable {
@@ -187,7 +238,14 @@ Page {
             width: Math.min(screen.width, screen.height) - platformStyle.graphicSizeSmall * 2
             height: width
             fillMode: Image.PreserveAspectCrop
-            source: currentMusic ? currentMusic.albumImageUrl + "?param=640y640&quality=100" : ""
+            source: currentMusic ? Api.getScaledImageUrl(currentMusic.albumImageUrl, 640) : ""
+        }
+
+        Image {
+            visible: coverImage.status != Image.Ready
+            anchors.fill: coverImage
+            sourceSize { width: width; height: height }
+            source: "gfx/default_play_cover.png"
         }
 
         ProgressBar {
@@ -255,7 +313,8 @@ Page {
 
             ControlButton {
                 buttonName: currentMusic && currentMusic.starred ? "loved" : "love"
-                onClicked: qmlApi.takeScreenShot()
+                onClicked: infoBanner.showDevelopingMsg()
+//                onClicked: pageStack.pop()
             }
 
             ControlButton {
@@ -265,19 +324,29 @@ Page {
                         if (audio.paused) audio.play()
                         else audio.pause()
                     }
+                    else if (musicFetcher.count > 0) {
+                        var index = Math.min(Math.max(currentIndex, 0), musicFetcher.count - 1)
+                        if (audio.status == Audio.Loading)
+                            audio.waitingIndex = index
+                        else
+                            audio.setCurrentMusic(index)
+                    }
+                    else {
+                        playPrivateFM()
+                    }
                 }
             }
 
             ControlButton {
                 buttonName: "next"
-                onClicked: {
-                    if (audio.status != Audio.Loading)
-                        audio.playNextMusic()
-                }
+                enabled: audio.status != Audio.Loading
+                onClicked: audio.playNextMusic()
             }
 
             ControlButton {
+                visible: callerType == callerTypePrivateFM
                 buttonName: "del"
+                onClicked: infoBanner.showDevelopingMsg()
             }
         }
     }

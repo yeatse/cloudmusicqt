@@ -4,6 +4,8 @@ import com.nokia.extras 1.1
 import QtMobility.systeminfo 1.1
 import com.yeatse.cloudmusic 1.0
 
+import "../js/api.js" as Api
+
 PageStackWindow {
     id: app
 
@@ -15,32 +17,32 @@ PageStackWindow {
         tools: mainTools
     }
 
-    function showMessage(msg) {
-        infoBanner.text = msg
-        infoBanner.open()
-    }
-
     QtObject {
         id: internal
 
         function initialize() {
+            Api.qmlApi = qmlApi
+            resetBackground()
             user.initialize()
         }
 
         function resetBackground() {
-            var bgColor = "#313131"
-            if (app.hasOwnProperty("color")) {
-                app.color = bgColor
-            }
-            else {
-                for (var i = app.children.length - 1; i >= 0; i--) {
-                    var child = app.children[i]
-                    if (child != volumeIndicator && child.hasOwnProperty("color")) {
-                        child.z = -2
-                        child.color = bgColor
-                        break
-                    }
+            for (var i = 0; i < app.children.length; i++) {
+                var child = app.children[i]
+                if (child != volumeIndicator && child.hasOwnProperty("color")) {
+                    child.z = -2
+                    break
                 }
+            }
+        }
+    }
+
+    Connections {
+        target: qmlApi
+        onProcessCommand: {
+            console.log("qml api: process command", commandId)
+            if (commandId == 1) {
+                player.bringToFront()
             }
         }
     }
@@ -60,6 +62,15 @@ PageStackWindow {
 
     InfoBanner {
         id: infoBanner
+
+        function showMessage(msg) {
+            infoBanner.text = msg
+            infoBanner.open()
+        }
+
+        function showDevelopingMsg() {
+            showMessage("此功能正在建设中...> <")
+        }
     }
 
     ToolBarLayout {
@@ -71,12 +82,13 @@ PageStackWindow {
             Timer {
                 id: quitTimer
                 interval: infoBanner.timeout
-                onRunningChanged: if (running) showMessage("再按一次退出")
+                onRunningChanged: if (running) infoBanner.showMessage("再按一次退出")
             }
         }
 
         ToolButton {
             iconSource: "toolbar-search"
+            onClicked: infoBanner.showDevelopingMsg()
         }
 
         ToolButton {
@@ -86,6 +98,7 @@ PageStackWindow {
 
         ToolButton {
             iconSource: "toolbar-settings"
+            onClicked: infoBanner.showDevelopingMsg()
         }
     }
 
@@ -98,21 +111,21 @@ PageStackWindow {
         z: -1
         anchors.fill: parent
         source: backgroundImage.status == Image.Ready ? backgroundImage : null
+        onHeightChanged: refresh()
 
         Image {
             id: backgroundImage
             anchors.fill: parent
             asynchronous: true
             fillMode: Image.PreserveAspectCrop
-            source: player.currentMusic ? player.currentMusic.albumImageUrl + "?param=640y640&quality=100"
+            source: player.currentMusic ? Api.getScaledImageUrl(player.currentMusic.albumImageUrl, 640)
                                         : ""
             visible: false
         }
     }
 
     Keys.onPressed: {
-        if (event.key == Qt.Key_Menu)
-            qmlApi.takeScreenShot()
+//        if (event.key == Qt.Key_Menu) qmlApi.takeScreenShot()
     }
 
     Keys.onVolumeUpPressed: volumeIndicator.volumeUp()

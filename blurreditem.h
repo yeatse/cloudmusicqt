@@ -25,7 +25,7 @@ protected:
 
 private:
     QDeclarativeItem* mSource;
-    QImage mImage;
+    QPixmap mPixmap;
 };
 
 #endif // BLURREDITEM_H

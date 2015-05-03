@@ -41,16 +41,19 @@ symbian {
     DEPLOYMENTFOLDERS = folder_symbian3 folder_js
 
     CONFIG += qt-components localize_deployment
+
     TARGET.UID3 = 0x2006DFF5
+
     TARGET.CAPABILITY += \
         NetworkServices \
         ReadUserData \
         WriteUserData \
         ReadDeviceData \
         WriteDeviceData
+
     TARGET.EPOCHEAPSIZE = 0x40000 0x4000000
 
-    LIBS += -lavkon
+    LIBS += -lavkon -leikcore
 
     vendorinfo = "%{\"Yeatse\"}" ":\"Yeatse\""
     my_deployment.pkg_prerules += vendorinfo

@@ -8,10 +8,7 @@ ListItemFrame {
     property alias title: titleText.text
     property alias subTitle: subTitleText.text
 
-    signal clicked
-
-    implicitWidth: screen.width
-    implicitHeight: platformStyle.graphicSizeLarge
+    implicitHeight: platformStyle.graphicSizeLarge + platformStyle.paddingLarge
 
     Image {
         id: icon
@@ -25,30 +22,26 @@ ListItemFrame {
 
     Column {
         anchors {
-            left: iconSource == "" ? parent.left : icon.right
-            leftMargin: iconSource == "" ? platformStyle.paddingLarge : platformStyle.paddingMedium
+            left: icon.right; leftMargin: platformStyle.paddingMedium
+            right: parent.right
             verticalCenter: parent.verticalCenter
         }
         spacing: platformStyle.paddingSmall
 
         Text {
             id: titleText
+            width: parent.width
             font.pixelSize: platformStyle.fontSizeLarge
             color: platformStyle.colorNormalLight
+            elide: Text.ElideRight
         }
 
         Text {
             id: subTitleText
+            width: parent.width
             font.pixelSize: platformStyle.fontSizeSmall
             color: platformStyle.colorNormalMid
+            elide: Text.ElideRight
         }
-    }
-
-    MouseArea {
-        anchors.fill: parent
-        onPressed: root.opacity = 0.8
-        onReleased: root.opacity = 1
-        onCanceled: root.opacity = 1
-        onClicked: root.clicked()
     }
 }

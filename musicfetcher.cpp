@@ -129,6 +129,11 @@ int MusicInfo::fileSize(Quality quality) const
     return data ? data->size : 0;
 }
 
+QString MusicInfo::musicId() const
+{
+    return QString::number(id);
+}
+
 QString MusicInfo::musicName() const
 {
     return name;
@@ -223,6 +228,7 @@ void MusicFetcher::loadPrivateFM()
     mCurrentReply->setProperty(RequestOptionQuery, "data");
     connect(mCurrentReply, SIGNAL(finished()), SLOT(requestFinished()), Qt::QueuedConnection);
 
+    rawData.clear();
     mLastError = 0;
     emit loadingChanged();
 }
@@ -244,6 +250,7 @@ void MusicFetcher::loadRecommend(int offset, bool total, int limit)
     mCurrentReply->setProperty(RequestOptionReload, true);
     connect(mCurrentReply, SIGNAL(finished()), SLOT(requestFinished()), Qt::QueuedConnection);
 
+    rawData.clear();
     mLastError = 0;
     emit loadingChanged();
 }
@@ -263,6 +270,7 @@ void MusicFetcher::loadPlayList(const int &listId)
     mCurrentReply->setProperty(RequestOptionReload, true);
     connect(mCurrentReply, SIGNAL(finished()), SLOT(requestFinished()));
 
+    rawData.clear();
     mLastError = 0;
     emit loadingChanged();
 }
@@ -274,6 +282,7 @@ void MusicFetcher::loadFromFetcher(MusicFetcher *other)
     reset();
 
     bool changed = false;
+    rawData = other->rawData;
     foreach (MusicInfo* info, other->mDataList) {
         MusicInfo* copy = createDataFromMap(info->rawData, info->dataVersion);
         if (copy) {
@@ -293,6 +302,11 @@ MusicInfo* MusicFetcher::dataAt(const int &index) const
         return 0;
 }
 
+QVariantMap MusicFetcher::getRawData() const
+{
+    return rawData;
+}
+
 void MusicFetcher::reset()
 {
     if (!isComponentComplete) return;
@@ -305,6 +319,8 @@ void MusicFetcher::reset()
 
     mCurrentReply = 0;
     mLastError = 0;
+    rawData.clear();
+
     if (!mDataList.isEmpty()) {
         qDeleteAll(mDataList);
         mDataList.clear();
@@ -345,8 +361,8 @@ void MusicFetcher::requestFinished()
         emit dataChanged();
     }
 
-    QVariantMap resp = mParser->parse(mCurrentReply->readAll()).toMap();
-    mLastError = resp.value("code", -1).toInt();
+    rawData = mParser->parse(mCurrentReply->readAll()).toMap();
+    mLastError = rawData.value("code", -1).toInt();
     if (mLastError != 200) {
         emit loadingChanged();
         return;
@@ -359,11 +375,11 @@ void MusicFetcher::requestFinished()
 
     QString query = mCurrentReply->property(RequestOptionQuery).toString();
     if (query == OptionQueryPlayList) {
-        list = resp.value("result").toMap().value("tracks").toList();
+        list = rawData.value("result").toMap().value("tracks").toList();
         dataVer = 0;
     }
     else {
-        list = resp.value(query).toList();
+        list = rawData.value(query).toList();
         dataVer = 0;
     }
 

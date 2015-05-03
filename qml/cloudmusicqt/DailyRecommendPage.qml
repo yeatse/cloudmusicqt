@@ -12,16 +12,24 @@ Page {
             iconSource: "toolbar-back"
             onClicked: pageStack.pop()
         }
+        ToolButton {
+            iconSource: "gfx/logo_icon.png"
+            onClicked: player.bringToFront()
+        }
     }
 
     MusicFetcher {
         id: fetcher
+
+        property string type: "DailyRecommendPage"
+
         onLoadingChanged: {
             if (!loading && lastError == 0) {
                 listModel.clear()
                 for (var i = 0; i < count; i++) {
                     var data = dataAt(i)
                     var prop = {
+                        musicId: data.musicId,
                         name: data.musicName,
                         desc: data.artistsDisplayName + " - " + data.albumName
                     }
@@ -83,12 +91,16 @@ Page {
             Button {
                 anchors { left: parent.left; right: parent.right; margins: platformStyle.paddingLarge }
                 text: "播放全部"
+                enabled: !fetcher.loading && fetcher.count > 0
+                onClicked: player.playFetcher(fetcher.type, null, fetcher, 0)
             }
         }
 
-        delegate: CategoryItem {
+        delegate: MusicListItem {
             title: name
             subTitle: desc
+            active: player.currentMusic != null && player.currentMusic.musicId == musicId
+            onClicked: player.playFetcher(fetcher.type, null, fetcher, index)
         }
 
         footer: Item {
@@ -101,6 +113,8 @@ Page {
             }
         }
     }
+
+    ScrollDecorator { flickableItem: listView }
 
     Component.onCompleted: fetcher.loadRecommend()
 }

@@ -51,6 +51,7 @@ class MusicInfo : public QObject
 {
     Q_OBJECT
     Q_ENUMS(Quality)
+    Q_PROPERTY(QString musicId READ musicId CONSTANT)
     Q_PROPERTY(QString musicName READ musicName CONSTANT)
     Q_PROPERTY(int musicDuration READ musicDuration CONSTANT)
     Q_PROPERTY(bool starred READ isStarred NOTIFY starredChanged)
@@ -66,6 +67,7 @@ public:
     Q_INVOKABLE QString getUrl(Quality quality) const;
     Q_INVOKABLE int fileSize(Quality quality) const;
 
+    QString musicId() const;
     QString musicName() const;
     int musicDuration() const;
     bool isStarred() const;
@@ -121,6 +123,9 @@ public:
     Q_INVOKABLE void loadFromFetcher(MusicFetcher* other = 0);
 
     Q_INVOKABLE MusicInfo* dataAt(const int& index) const;
+
+    Q_INVOKABLE QVariantMap getRawData() const;
+
     Q_INVOKABLE void reset();
 
     int count() const;
@@ -138,6 +143,8 @@ private:
     MusicInfo* createDataFromMap(const QVariant& data, int ver = 0);
 
 private:
+    QVariantMap rawData;
+
     QList<MusicInfo*> mDataList;
     QPointer<QNetworkReply> mCurrentReply;
 

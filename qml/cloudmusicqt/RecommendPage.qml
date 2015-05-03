@@ -51,7 +51,7 @@ Page {
             ViewHeader {
                 title: "个性化推荐"
             }
-            CategoryItem {
+            CategoryListItem {
                 iconSource: "gfx/icon_background.png"
                 title: "每日歌曲推荐"
                 subTitle: "根据你的音乐口味生成，每天更新"
@@ -65,17 +65,17 @@ Page {
                     color: "white"
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
-                    font.pixelSize: platformStyle.fontSizeSmall - 2
+                    font.pixelSize: platformStyle.fontSizeMedium
                     text: Qt.formatDateTime(new Date(), "dddd\nM.d")
                 }
 
                 onClicked: pageStack.push(Qt.resolvedUrl("DailyRecommendPage.qml"))
             }
         }
-        delegate: CategoryItem {
+        delegate: CategoryListItem {
             title: name
             subTitle: copywriter
-            iconSource: picUrl + "?param=80y80&quality=100"
+            iconSource: Api.getScaledImageUrl(picUrl, 80)
             onClicked: {
                 var prop = { listId: id }
                 pageStack.push(Qt.resolvedUrl("PlayListPage.qml"), prop)

@@ -37,7 +37,10 @@ Page {
                 WebView.windowObjectName: "top"
 
                 function postMessage(msg) {
-                    console.log(JSON.stringify(msg))
+                    if (msg.code == 200) {
+                        user.initialize()
+                        pageStack.pop()
+                    }
                 }
             }
 

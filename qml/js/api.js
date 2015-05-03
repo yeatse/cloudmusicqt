@@ -1,5 +1,7 @@
 .pragma library
 
+var qmlApi;
+
 var ApiBaseUrl = "http://music.163.com/api";
 
 var CloudMusicApi = {
@@ -37,7 +39,7 @@ ApiRequest.prototype.sendRequest = function(onSuccess, onFailure) {
                         if (xhr.readyState == XMLHttpRequest.DONE) {
                             if (xhr.status == 200) {
                                 try {
-                                    var resp = JSON.parse(xhr.responseText);
+                                    var resp = qmlApi.jsonParse(xhr.responseText)
                                     if (resp.code == 200)
                                         onSuccess(resp);
                                     else
@@ -62,6 +64,10 @@ ApiRequest.prototype.sendRequest = function(onSuccess, onFailure) {
                 xhr.send(null);
             }
         };
+
+function getScaledImageUrl(url, size) {
+    return url + "?param=%1y%1&quality=100".arg(size);
+}
 
 function refreshToken(token, onSuccess, onFailure) {
     var req = new ApiRequest(CloudMusicApi.LOGIN_TOKEN_REFRESH, "POST");
