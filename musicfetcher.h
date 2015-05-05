@@ -119,6 +119,7 @@ public:
     Q_INVOKABLE void loadPrivateFM();
     Q_INVOKABLE void loadRecommend(int offset = 0, bool total = true, int limit = 20);
     Q_INVOKABLE void loadPlayList(const int &listId);
+    Q_INVOKABLE void loadDJDetail(const int &djId);
 
     Q_INVOKABLE void loadFromFetcher(MusicFetcher* other = 0);
 
@@ -143,7 +144,7 @@ private:
     MusicInfo* createDataFromMap(const QVariant& data, int ver = 0);
 
 private:
-    QVariantMap rawData;
+    QVariantMap mRawData;
 
     QList<MusicInfo*> mDataList;
     QPointer<QNetworkReply> mCurrentReply;

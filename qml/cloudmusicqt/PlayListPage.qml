@@ -50,7 +50,6 @@ Page {
                 } catch(e){
                     console.log("fill meta data error:" + e.toString())
                 }
-
                 listModel.clear()
                 for (var i = 0; i < count; i++) {
                     var data = dataAt(i)

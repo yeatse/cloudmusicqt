@@ -15,6 +15,7 @@ Page {
     property MusicInfo currentMusic: null
 
     property string callerTypePrivateFM: "PrivateFM"
+    property string callerTypeDJ: "DJ"
 
     function playPrivateFM() {
         bringToFront()
@@ -51,6 +52,24 @@ Page {
             audio.waitingIndex = index
         else
             audio.setCurrentMusic(index)
+    }
+
+    function playDJ(djId) {
+        if (callerType != callerTypeDJ || !qmlApi.compareVariant(callerParam, djId) || !audio.playing) {
+            callerType = callerTypeDJ
+            callerParam = djId
+
+            musicFetcher.reset()
+            musicFetcher.disconnect()
+            musicFetcher.loadDJDetail(djId)
+            musicFetcher.loadingChanged.connect(musicFetcher.firstListLoaded)
+        }
+        else if (audio.paused) {
+            audio.play()
+        }
+        else {
+            bringToFront()
+        }
     }
 
     function bringToFront() {
@@ -270,16 +289,25 @@ Page {
                 left: parent.left; right: parent.right
             }
             Column {
-                anchors.centerIn: parent
+                anchors.verticalCenter: parent.verticalCenter
+                width: parent.width
                 spacing: platformStyle.paddingMedium
                 Text {
-                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: parent.width
+                    horizontalAlignment: Text.AlignHCenter
+                    wrapMode: Text.Wrap
+                    elide: Text.ElideRight
+                    maximumLineCount: 2
                     color: platformStyle.colorNormalLight
                     font.pixelSize: platformStyle.fontSizeLarge
                     text: currentMusic ? currentMusic.musicName : ""
                 }
                 Text {
-                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: parent.width
+                    horizontalAlignment: Text.AlignHCenter
+                    wrapMode: Text.Wrap
+                    elide: Text.ElideRight
+                    maximumLineCount: 2
                     color: platformStyle.colorNormalMid
                     font.pixelSize: platformStyle.fontSizeSmall
                     font.weight: Font.Light
@@ -347,7 +375,7 @@ Page {
             }
             ToolButton {
                 iconSource: "toolbar-menu"
-                onClicked: infoBanner.showDevelopingMsg()
+                onClicked: menu.open()
             }
         }
         Component.onCompleted: {
@@ -357,6 +385,20 @@ Page {
                     break
                 }
             }
+        }
+    }
+
+    Menu {
+        id: menu
+        MenuLayout {
+            MenuItem {
+                text: "评论"
+                onClicked: infoBanner.showDevelopingMsg()
+            }
+        }
+        onStatusChanged: {
+            if (status == DialogStatus.Closed)
+                app.focus = true
         }
     }
 }

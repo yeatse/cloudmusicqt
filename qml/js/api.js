@@ -7,7 +7,8 @@ var ApiBaseUrl = "http://music.163.com/api";
 var CloudMusicApi = {
     SNS_AUTH_SINA: ApiBaseUrl + "/sns/authorize/?snsType=2&clientType=pc",
     LOGIN_TOKEN_REFRESH: ApiBaseUrl + "/login/token/refresh",
-    DISCOVERY_RECOMMEND_RESOURCE: ApiBaseUrl + "/v1/discovery/recommend/resource"
+    DISCOVERY_RECOMMEND_RESOURCE: ApiBaseUrl + "/v1/discovery/recommend/resource",
+    DISCOVERY_HOTSPOT: ApiBaseUrl + "/discovery/hotspot"
 };
 
 var ApiRequest = function(url, method) {
@@ -77,6 +78,12 @@ function refreshToken(token, onSuccess, onFailure) {
 
 function getRecommendResource(limit, onSuccess, onFailure) {
     var req = new ApiRequest(CloudMusicApi.DISCOVERY_RECOMMEND_RESOURCE);
+    req.setQuery({limit: limit});
+    req.sendRequest(onSuccess, onFailure);
+}
+
+function getHotSopt(limit, onSuccess, onFailure) {
+    var req = new ApiRequest(CloudMusicApi.DISCOVERY_HOTSPOT);
     req.setQuery({limit: limit});
     req.sendRequest(onSuccess, onFailure);
 }

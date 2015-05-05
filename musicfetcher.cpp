@@ -17,6 +17,7 @@ static const char* RequestOptionQuery = "query";
 static const char* RequestOptionReload = "reload";
 
 static const char* OptionQueryPlayList = "playlist";
+static const char* OptionQueryDJDetail = "djDetail";
 
 MusicData* MusicData::fromVariant(const QVariant &data, int ver)
 {
@@ -228,7 +229,7 @@ void MusicFetcher::loadPrivateFM()
     mCurrentReply->setProperty(RequestOptionQuery, "data");
     connect(mCurrentReply, SIGNAL(finished()), SLOT(requestFinished()), Qt::QueuedConnection);
 
-    rawData.clear();
+    mRawData.clear();
     mLastError = 0;
     emit loadingChanged();
 }
@@ -250,7 +251,7 @@ void MusicFetcher::loadRecommend(int offset, bool total, int limit)
     mCurrentReply->setProperty(RequestOptionReload, true);
     connect(mCurrentReply, SIGNAL(finished()), SLOT(requestFinished()), Qt::QueuedConnection);
 
-    rawData.clear();
+    mRawData.clear();
     mLastError = 0;
     emit loadingChanged();
 }
@@ -270,7 +271,27 @@ void MusicFetcher::loadPlayList(const int &listId)
     mCurrentReply->setProperty(RequestOptionReload, true);
     connect(mCurrentReply, SIGNAL(finished()), SLOT(requestFinished()));
 
-    rawData.clear();
+    mRawData.clear();
+    mLastError = 0;
+    emit loadingChanged();
+}
+
+void MusicFetcher::loadDJDetail(const int &djId)
+{
+    if (!isComponentComplete) return;
+
+    if (mCurrentReply && mCurrentReply->isRunning())
+        mCurrentReply->abort();
+
+    QUrl url(QString(ApiBaseUrl).append("/dj/program/detail"));
+    url.addEncodedQueryItem("id", QByteArray::number(djId));
+
+    mCurrentReply = mNetworkAccessManager->get(QNetworkRequest(url));
+    mCurrentReply->setProperty(RequestOptionQuery, OptionQueryDJDetail);
+    mCurrentReply->setProperty(RequestOptionReload, true);
+    connect(mCurrentReply, SIGNAL(finished()), SLOT(requestFinished()));
+
+    mRawData.clear();
     mLastError = 0;
     emit loadingChanged();
 }
@@ -282,7 +303,7 @@ void MusicFetcher::loadFromFetcher(MusicFetcher *other)
     reset();
 
     bool changed = false;
-    rawData = other->rawData;
+    mRawData = other->mRawData;
     foreach (MusicInfo* info, other->mDataList) {
         MusicInfo* copy = createDataFromMap(info->rawData, info->dataVersion);
         if (copy) {
@@ -304,7 +325,7 @@ MusicInfo* MusicFetcher::dataAt(const int &index) const
 
 QVariantMap MusicFetcher::getRawData() const
 {
-    return rawData;
+    return mRawData;
 }
 
 void MusicFetcher::reset()
@@ -319,7 +340,7 @@ void MusicFetcher::reset()
 
     mCurrentReply = 0;
     mLastError = 0;
-    rawData.clear();
+    mRawData.clear();
 
     if (!mDataList.isEmpty()) {
         qDeleteAll(mDataList);
@@ -361,8 +382,8 @@ void MusicFetcher::requestFinished()
         emit dataChanged();
     }
 
-    rawData = mParser->parse(mCurrentReply->readAll()).toMap();
-    mLastError = rawData.value("code", -1).toInt();
+    mRawData = mParser->parse(mCurrentReply->readAll()).toMap();
+    mLastError = mRawData.value("code", -1).toInt();
     if (mLastError != 200) {
         emit loadingChanged();
         return;
@@ -371,16 +392,17 @@ void MusicFetcher::requestFinished()
 
     bool changed = false;
     QVariantList list;
-    int dataVer;
+    int dataVer = 0;
 
     QString query = mCurrentReply->property(RequestOptionQuery).toString();
     if (query == OptionQueryPlayList) {
-        list = rawData.value("result").toMap().value("tracks").toList();
-        dataVer = 0;
+        list = mRawData.value("result").toMap().value("tracks").toList();
+    }
+    else if (query == OptionQueryDJDetail) {
+        list << mRawData.value("program").toMap().value("mainSong");
     }
     else {
-        list = rawData.value(query).toList();
-        dataVer = 0;
+        list = mRawData.value(query).toList();
     }
 
     foreach (const QVariant& item, list) {

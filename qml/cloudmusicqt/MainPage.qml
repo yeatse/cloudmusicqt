@@ -2,10 +2,35 @@ import QtQuick 1.1
 import com.nokia.symbian 1.1
 import com.yeatse.cloudmusic 1.0
 
+import "../js/api.js" as Api
+
 Page {
     id: mainPage
 
     orientationLock: PageOrientation.LockPortrait
+
+    property bool loading: false
+
+    function getHotSpotList() {
+        if (loading) return
+        var s = function(resp) {
+            loading = false
+            hotSpotModel.clear()
+            for (var i in resp.data)
+                hotSpotModel.append(resp.data[i])
+        }
+        var f = function(err) {
+            loading = false
+            console.log("get hot spot failed: ", err)
+        }
+        loading = true
+        Api.getHotSopt(12, s, f)
+    }
+
+    Connections {
+        target: user
+        onUserChanged: getHotSpotList()
+    }
 
     Flickable {
         id: view
@@ -25,8 +50,12 @@ Page {
                         verticalCenter: parent.verticalCenter
                     }
                     iconSource: "gfx/contacts.svg"
-                    onClicked: pageStack.push(Qt.resolvedUrl( user.loggedIn ? "LoginPage.qml"
-                                                                            : "LoginPage.qml" ))
+                    onClicked: {
+                        if (user.loggedIn)
+                            infoBanner.showDevelopingMsg()
+                        else
+                            pageStack.push(Qt.resolvedUrl("LoginPage.qml"))
+                    }
                 }
             }
 
@@ -58,6 +87,95 @@ Page {
                 onClicked: pageStack.push(Qt.resolvedUrl(user.loggedIn ? "RecommendPage.qml"
                                                                        : "LoginPage.qml"))
             }
+
+            Item {
+                width: parent.width
+                height: platformStyle.graphicSizeLarge
+
+                ListItemText {
+                    anchors {
+                        left: parent.left; leftMargin: platformStyle.paddingLarge
+                        verticalCenter: parent.verticalCenter
+                    }
+                    text: "热门推荐"
+                }
+            }
+
+            Grid {
+                id: grid
+                property int itemWidth: (width - spacing) / columns
+                anchors {
+                    left: parent.left; right: parent.right
+                    margins: platformStyle.paddingLarge
+                }
+                spacing: platformStyle.paddingLarge
+                columns: 2
+                Repeater {
+                    model: ListModel { id: hotSpotModel }
+                    Item {
+                        width: grid.itemWidth
+                        height: width + platformStyle.graphicSizeLarge
+                        Image {
+                            id: coverImage
+                            width: parent.width
+                            height: parent.width
+                            source: Api.getScaledImageUrl(picUrl, 160)
+                            Loader {
+                                anchors {
+                                    left: parent.left; bottom: parent.bottom
+                                    bottomMargin: platformStyle.paddingSmall
+                                }
+                                sourceComponent: type == 0 ? djProgramIcon : undefined
+                                Component {
+                                    id: djProgramIcon
+                                    Image { source: "gfx/index_icn_dj.png" }
+                                }
+                            }
+                        }
+                        Text {
+                            anchors { top: coverImage.bottom; topMargin: platformStyle.paddingMedium }
+                            width: parent.width
+                            elide: Text.ElideRight
+                            wrapMode: Text.Wrap
+                            maximumLineCount: 2
+                            font.pixelSize: platformStyle.fontSizeMedium
+                            color: "white"
+                            text: name
+                        }
+                        MouseArea {
+                            anchors.fill: parent
+                            onPressed: parent.opacity = 0.8
+                            onReleased: parent.opacity = 1
+                            onCanceled: parent.opacity = 1
+                            onClicked: {
+                                if (type == 0) {
+                                    player.playDJ(id)
+                                }
+                                else if (type == 1) {
+                                    pageStack.push(Qt.resolvedUrl("PlayListPage.qml"), { listId: id })
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            Item {
+                width: parent.width
+                height: loading || hotSpotModel.count == 0 ? 200 : 0
+                BusyIndicator {
+                    anchors.centerIn: parent
+                    running: loading
+                    visible: loading
+                }
+                Button {
+                    anchors.centerIn: parent
+                    iconSource: privateStyle.toolBarIconPath("toolbar-refresh")
+                    visible: !loading && hotSpotModel.count == 0
+                    onClicked: getHotSpotList()
+                }
+            }
         }
     }
+
+    ScrollDecorator { flickableItem: view }
 }
