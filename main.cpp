@@ -8,7 +8,7 @@
 #include "musicfetcher.h"
 #include "blurreditem.h"
 
-//#define PROXY_HOST "192.168.1.108"
+//#define PROXY_HOST "localhost"
 
 #ifdef PROXY_HOST
 #include <QNetworkProxy>

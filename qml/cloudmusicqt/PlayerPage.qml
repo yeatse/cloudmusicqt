@@ -64,21 +64,6 @@ Page {
 
     orientationLock: PageOrientation.LockPortrait
 
-    tools: ToolBarLayout {
-        ToolButton {
-            iconSource: "toolbar-back"
-            onClicked: pageStack.pop()
-        }
-        ToolButton {
-            iconSource: "gfx/instant_messenger_chat.svg"
-            onClicked: infoBanner.showDevelopingMsg()
-        }
-        ToolButton {
-            iconSource: "toolbar-menu"
-            onClicked: infoBanner.showDevelopingMsg()
-        }
-    }
-
     onStatusChanged: {
         if (status == PageStatus.Active) {
             app.forceActiveFocus()
@@ -227,7 +212,8 @@ Page {
         id: view
         anchors.fill: parent
         contentWidth: parent.width
-        contentHeight: Math.max(parent.height, 550)
+        contentHeight: Math.max(screen.height - privateStyle.statusBarHeight,
+                                Math.min(screen.width, screen.height) + 200)
         boundsBehavior: Flickable.StopAtBounds
 
         Image {
@@ -306,7 +292,7 @@ Page {
             id: controlButton
 
             anchors {
-                bottom: parent.bottom; bottomMargin: platformStyle.paddingLarge
+                bottom: parent.bottom; bottomMargin: privateStyle.toolBarHeightPortrait
                 horizontalCenter: parent.horizontalCenter
             }
 
@@ -315,7 +301,6 @@ Page {
             ControlButton {
                 buttonName: currentMusic && currentMusic.starred ? "loved" : "love"
                 onClicked: infoBanner.showDevelopingMsg()
-//                onClicked: pageStack.pop()
             }
 
             ControlButton {
@@ -348,6 +333,29 @@ Page {
                 visible: callerType == callerTypePrivateFM
                 buttonName: "del"
                 onClicked: infoBanner.showDevelopingMsg()
+            }
+        }
+    }
+
+    ToolBar {
+        id: toolBar
+        y: screen.height - privateStyle.statusBarHeight - toolBar.height
+        tools: ToolBarLayout {
+            ToolButton {
+                iconSource: "toolbar-back"
+                onClicked: pageStack.pop()
+            }
+            ToolButton {
+                iconSource: "toolbar-menu"
+                onClicked: infoBanner.showDevelopingMsg()
+            }
+        }
+        Component.onCompleted: {
+            for (var i = 0; i < children.length; i++) {
+                if (children[i].hasOwnProperty("source")) {
+                    children[i].source = ""
+                    break
+                }
             }
         }
     }

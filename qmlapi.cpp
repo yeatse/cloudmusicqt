@@ -66,7 +66,7 @@ void QmlApi::showNotification(const QString &title, const QString &text, const i
                     this,
                     uid ));
 #else
-    qDebug() << "showNotification:" << title << message;
+    qDebug() << "showNotification:" << title << text << commandId;
 #endif
 }
 
