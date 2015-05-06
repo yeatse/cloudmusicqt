@@ -23,6 +23,9 @@ public:
 
     Q_INVOKABLE QString getCookieToken();
 
+    Q_INVOKABLE QString getUserId();
+    Q_INVOKABLE void saveUserId(const QString& id);
+
     Q_INVOKABLE void takeScreenShot();
 
     Q_INVOKABLE void showNotification(const QString& title, const QString& text,

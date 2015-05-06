@@ -42,11 +42,13 @@ Page {
         id: fetcher
 
         property string type: "PlayListPage"
+        property bool dataValid: false
 
         onLoadingChanged: {
             if (!loading && !lastError) {
                 try {
                     fillMetaData()
+                    dataValid = true
                 } catch(e){
                     console.log("fill meta data error:" + e.toString())
                 }
@@ -87,16 +89,22 @@ Page {
             Item {
                 anchors { left: parent.left; right: parent.right; margins: platformStyle.paddingLarge }
                 height: width / 480 * 222
-                visible: fetcher.loading
+                visible: fetcher.loading || !fetcher.dataValid
                 BusyIndicator {
                     anchors.centerIn: parent
                     running: fetcher.loading
+                }
+                Button {
+                    anchors.centerIn: parent
+                    iconSource: privateStyle.toolBarIconPath("toolbar-refresh")
+                    visible: !fetcher.loading && !fetcher.dataValid
+                    onClicked: fetcher.loadPlayList(listId)
                 }
             }
             Item {
                 anchors { left: parent.left; right: parent.right; margins: platformStyle.paddingLarge }
                 height: width / 480 * 222
-                visible: !fetcher.loading
+                visible: !fetcher.loading && fetcher.dataValid
                 Image {
                     id: coverImage
                     height: parent.height

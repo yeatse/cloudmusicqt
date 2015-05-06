@@ -40,7 +40,7 @@ Page {
             console.log("get recommend failed: ", err)
         }
         loading = true
-        Api.getRecommendResource(5, s, f)
+        Api.getRecommendResource(s, f)
     }
 
     ListView {

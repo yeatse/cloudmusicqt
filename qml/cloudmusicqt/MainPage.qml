@@ -24,7 +24,7 @@ Page {
             console.log("get hot spot failed: ", err)
         }
         loading = true
-        Api.getHotSopt(12, s, f)
+        Api.getHotSopt(s, f)
     }
 
     Connections {
@@ -50,12 +50,8 @@ Page {
                         verticalCenter: parent.verticalCenter
                     }
                     iconSource: "gfx/contacts.svg"
-                    onClicked: {
-                        if (user.loggedIn)
-                            infoBanner.showDevelopingMsg()
-                        else
-                            pageStack.push(Qt.resolvedUrl("LoginPage.qml"))
-                    }
+                    onClicked: user.loggedIn ? pageStack.push(Qt.resolvedUrl("UserInfoPage.qml"),{userId: qmlApi.getUserId()})
+                                             : pageStack.push(Qt.resolvedUrl("LoginPage.qml"))
                 }
             }
 

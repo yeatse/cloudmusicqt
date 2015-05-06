@@ -10,7 +10,8 @@ QtObject {
 
     function initialize() {
         var token = qmlApi.getCookieToken()
-        loggedIn = token != ""
+        var uid = qmlApi.getUserId()
+        loggedIn = token != "" && uid != ""
         userChanged()
         if (loggedIn) {
             refreshUserToken(token)
@@ -18,12 +19,13 @@ QtObject {
     }
 
     function refreshUserToken(token) {
-        var s = new Function()
         var f = function(err) {
             console.log("refresh token failed: ", f)
-            loggedIn = false
-            userChanged()
+            if (err != 0) {
+                loggedIn = false
+                userChanged()
+            }
         }
-        Api.refreshToken(token, s, f)
+        Api.refreshToken(token, new Function(), f)
     }
 }

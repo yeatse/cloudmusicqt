@@ -1,7 +1,5 @@
 #include "qmlapi.h"
 
-#include "networkaccessmanagerfactory.h"
-
 #include <QDateTime>
 #include <QApplication>
 #include <QPixmap>
@@ -12,6 +10,9 @@
 #include <akndiscreetpopup.h>
 #include <avkon.hrh>
 #endif
+
+#include "networkaccessmanagerfactory.h"
+#include "userconfig.h"
 
 #include "qjson/json_parser.hh"
 
@@ -34,6 +35,16 @@ QString QmlApi::getCookieToken()
         }
     }
     return QString();
+}
+
+QString QmlApi::getUserId()
+{
+    return UserConfig::Instance()->getSetting(UserConfig::KeyUserId).toString();
+}
+
+void QmlApi::saveUserId(const QString &id)
+{
+    UserConfig::Instance()->setSetting(UserConfig::KeyUserId, id);
 }
 
 void QmlApi::takeScreenShot()

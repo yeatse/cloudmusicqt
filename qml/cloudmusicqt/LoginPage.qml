@@ -37,7 +37,8 @@ Page {
                 WebView.windowObjectName: "top"
 
                 function postMessage(msg) {
-                    if (msg.code == 200) {
+                    if (msg.code == 200 && msg.callbackType == "Login") {
+                        qmlApi.saveUserId(msg.account.id)
                         user.initialize()
                         pageStack.pop()
                     }

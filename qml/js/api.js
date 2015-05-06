@@ -2,13 +2,15 @@
 
 var qmlApi;
 
-var ApiBaseUrl = "http://music.163.com/api";
-
 var CloudMusicApi = {
-    SNS_AUTH_SINA: ApiBaseUrl + "/sns/authorize/?snsType=2&clientType=pc",
-    LOGIN_TOKEN_REFRESH: ApiBaseUrl + "/login/token/refresh",
-    DISCOVERY_RECOMMEND_RESOURCE: ApiBaseUrl + "/v1/discovery/recommend/resource",
-    DISCOVERY_HOTSPOT: ApiBaseUrl + "/discovery/hotspot"
+    SNS_AUTH_SINA: "http://music.163.com/api/sns/authorize/?snsType=2&clientType=pc",
+    LOGIN_TOKEN_REFRESH: "http://music.163.com/api/login/token/refresh",
+
+    DISCOVERY_RECOMMEND_RESOURCE: "http://music.163.com/api/v1/discovery/recommend/resource",
+    DISCOVERY_HOTSPOT: "http://music.163.com/api/discovery/hotspot",
+
+    USER_DETAIL: "http://music.163.com/api/user/detail/",
+    USER_PLAYLIST: "http://music.163.com/api/user/playlist/"
 };
 
 var ApiRequest = function(url, method) {
@@ -76,14 +78,26 @@ function refreshToken(token, onSuccess, onFailure) {
     req.sendRequest(onSuccess, onFailure);
 }
 
-function getRecommendResource(limit, onSuccess, onFailure) {
+function getRecommendResource(onSuccess, onFailure) {
     var req = new ApiRequest(CloudMusicApi.DISCOVERY_RECOMMEND_RESOURCE);
-    req.setQuery({limit: limit});
+    req.setQuery({limit: 5});
     req.sendRequest(onSuccess, onFailure);
 }
 
-function getHotSopt(limit, onSuccess, onFailure) {
+function getHotSopt(onSuccess, onFailure) {
     var req = new ApiRequest(CloudMusicApi.DISCOVERY_HOTSPOT);
-    req.setQuery({limit: limit});
+    req.setQuery({limit: 12});
+    req.sendRequest(onSuccess, onFailure);
+}
+
+function getUserDetail(uid, onSuccess, onFailure) {
+    var req = new ApiRequest(CloudMusicApi.USER_DETAIL + uid);
+    req.setQuery({userId: uid});
+    req.sendRequest(onSuccess, onFailure);
+}
+
+function getUserPlayList(uid, onSuccess, onFailure) {
+    var req = new ApiRequest(CloudMusicApi.USER_PLAYLIST);
+    req.setQuery({ offset: 0, limit: 1000, uid: uid });
     req.sendRequest(onSuccess, onFailure);
 }
