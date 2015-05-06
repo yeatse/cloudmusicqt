@@ -20,6 +20,8 @@ Page {
     property int followingCount
     property int followerCount
     property string signature
+    property int playlistCreated
+    property int playlistSubscribed
 
     orientationLock: PageOrientation.LockPortrait
 
@@ -36,6 +38,7 @@ Page {
         var s = function(resp) {
             loadingUserData = false
             var profile = resp.profile
+            console.log(JSON.stringify(profile))
             avatarImageUrl = profile.avatarUrl
             userName = profile.nickname
             gender = profile.gender
@@ -43,6 +46,8 @@ Page {
             followingCount = profile.follows
             followerCount = profile.followeds
             signature = profile.signature
+            playlistCreated = profile.cCount
+            playlistSubscribed = profile.sCount
             userDataValid = true
         }
         var f = function(err) {
@@ -58,8 +63,11 @@ Page {
         var s = function(resp) {
             loadingPlayList = false
             listModel.clear()
-            for (var i in resp.playlist)
-                listModel.append(resp.playlist[i])
+            for (var i in resp.playlist) {
+                var prop = resp.playlist[i]
+                prop.group = prop.creator.userId == userId ? 0 : 1
+                listModel.append(prop)
+            }
         }
         var f = function(err) {
             loadingPlayList = false
@@ -88,7 +96,7 @@ Page {
             }
             Item {
                 anchors { left: parent.left; right: parent.right; margins: platformStyle.paddingLarge }
-                height: width / 480 * 222
+                height: 120
                 visible: loadingUserData || !userDataValid
                 BusyIndicator {
                     anchors.centerIn: parent
@@ -141,11 +149,15 @@ Page {
                     text: "动态%1 关注%2 粉丝%3".arg(eventCount).arg(followingCount).arg(followerCount)
                 }
             }
-            ListHeading {
+        }
+        section {
+            property: "group"
+            delegate: ListHeading {
                 ListItemText {
                     anchors.fill: parent.paddingItem
                     role: "Heading"
-                    text: "收藏的歌单(%1)".arg(listModel.count)
+                    text: section == 0 ? "创建的歌单%1".arg(page.playlistCreated)
+                                       : "收藏的歌单%1".arg(page.playlistSubscribed)
                 }
             }
         }

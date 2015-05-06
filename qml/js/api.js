@@ -92,7 +92,7 @@ function getHotSopt(onSuccess, onFailure) {
 
 function getUserDetail(uid, onSuccess, onFailure) {
     var req = new ApiRequest(CloudMusicApi.USER_DETAIL + uid);
-    req.setQuery({userId: uid});
+    req.setQuery({userId: uid, all: true});
     req.sendRequest(onSuccess, onFailure);
 }
 
