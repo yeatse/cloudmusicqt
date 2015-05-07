@@ -269,7 +269,7 @@ void MusicFetcher::loadPlayList(const int &listId)
     mCurrentReply = mNetworkAccessManager->get(QNetworkRequest(url));
     mCurrentReply->setProperty(RequestOptionQuery, OptionQueryPlayList);
     mCurrentReply->setProperty(RequestOptionReload, true);
-    connect(mCurrentReply, SIGNAL(finished()), SLOT(requestFinished()));
+    connect(mCurrentReply, SIGNAL(finished()), SLOT(requestFinished()), Qt::QueuedConnection);
 
     mRawData.clear();
     mLastError = 0;
@@ -289,7 +289,7 @@ void MusicFetcher::loadDJDetail(const int &djId)
     mCurrentReply = mNetworkAccessManager->get(QNetworkRequest(url));
     mCurrentReply->setProperty(RequestOptionQuery, OptionQueryDJDetail);
     mCurrentReply->setProperty(RequestOptionReload, true);
-    connect(mCurrentReply, SIGNAL(finished()), SLOT(requestFinished()));
+    connect(mCurrentReply, SIGNAL(finished()), SLOT(requestFinished()), Qt::QueuedConnection);
 
     mRawData.clear();
     mLastError = 0;

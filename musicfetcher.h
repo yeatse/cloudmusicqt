@@ -54,7 +54,7 @@ class MusicInfo : public QObject
     Q_PROPERTY(QString musicId READ musicId CONSTANT)
     Q_PROPERTY(QString musicName READ musicName CONSTANT)
     Q_PROPERTY(int musicDuration READ musicDuration CONSTANT)
-    Q_PROPERTY(bool starred READ isStarred NOTIFY starredChanged)
+    Q_PROPERTY(bool starred READ isStarred CONSTANT)
     Q_PROPERTY(QString albumName READ albumName CONSTANT)
     Q_PROPERTY(QString albumImageUrl READ albumImageUrl CONSTANT)
     Q_PROPERTY(QString artistsDisplayName READ artistsDisplayName CONSTANT)
@@ -78,9 +78,6 @@ public:
 
     static QString getMusicUrl(const QByteArray& id, const QString& ext = "mp3");
     static QString getPictureUrl(const QByteArray& id);
-
-signals:
-    void starredChanged();
 
 private:
     QVariant rawData;

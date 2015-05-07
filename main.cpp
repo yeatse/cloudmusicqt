@@ -6,7 +6,9 @@
 #include "networkaccessmanagerfactory.h"
 #include "qmlapi.h"
 #include "musicfetcher.h"
+#include "musiccollector.h"
 #include "blurreditem.h"
+#include "musiccollector.h"
 
 //#define PROXY_HOST "localhost"
 
@@ -46,6 +48,7 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     viewer->engine()->setNetworkAccessManagerFactory(factory.data());
 
     viewer->rootContext()->setContextProperty("qmlApi", new QmlApi(viewer.data()));
+    viewer->rootContext()->setContextProperty("collector", new MusicCollector(viewer.data()));
 
     viewer->setMainQmlFile(QLatin1String("qml/cloudmusicqt/main.qml"));
     viewer->showExpanded();
