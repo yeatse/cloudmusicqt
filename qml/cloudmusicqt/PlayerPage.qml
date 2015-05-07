@@ -17,6 +17,8 @@ Page {
     property string callerTypePrivateFM: "PrivateFM"
     property string callerTypeDJ: "DJ"
 
+    property bool isMusicCollected: false
+
     function playPrivateFM() {
         bringToFront()
         if (callerType != callerTypePrivateFM || !audio.playing) {
@@ -89,6 +91,13 @@ Page {
         }
     }
 
+    Connections {
+        target: collector
+        onDataChanged: {
+            isMusicCollected = currentMusic != null && collector.isCollected(currentMusic.musicId)
+        }
+    }
+
     MusicFetcher {
         id: musicFetcher
 
@@ -134,6 +143,11 @@ Page {
                 currentIndex = index
                 audio.source = currentMusic.getUrl(MusicInfo.LowQuality)
                 audio.play()
+
+                if (callerType == callerTypePrivateFM)
+                    isMusicCollected = currentMusic.starred
+                else
+                    isMusicCollected = collector.isCollected(currentMusic.musicId)
 
                 if (app.pageStack.currentPage != page) {
                     qmlApi.showNotification("网易云音乐",
@@ -327,7 +341,7 @@ Page {
             spacing: 12
 
             ControlButton {
-                buttonName: currentMusic && currentMusic.starred ? "loved" : "love"
+                buttonName: isMusicCollected ? "loved" : "love"
                 onClicked: infoBanner.showDevelopingMsg()
             }
 

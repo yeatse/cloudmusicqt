@@ -150,7 +150,7 @@ void MusicCollector::loadList()
     if (currentReply && currentReply->isRunning())
         currentReply->abort();
 
-    QUrl url(QString(ApiBaseUrl).append("v2/playlist/detail"));
+    QUrl url(QString(ApiBaseUrl).append("/v2/playlist/detail"));
     url.addEncodedQueryItem("id", QByteArray::number(playlistId));
     url.addEncodedQueryItem("t", "-1");
     url.addEncodedQueryItem("n", "1000");

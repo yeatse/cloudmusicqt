@@ -38,7 +38,6 @@ Page {
         var s = function(resp) {
             loadingUserData = false
             var profile = resp.profile
-            console.log(JSON.stringify(profile))
             avatarImageUrl = profile.avatarUrl
             userName = profile.nickname
             gender = profile.gender

@@ -14,6 +14,7 @@ QtObject {
         loggedIn = token != "" && uid != ""
         userChanged()
         if (loggedIn) {
+            collector.refresh()
             refreshUserToken(token)
         }
     }
