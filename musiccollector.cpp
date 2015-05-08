@@ -8,6 +8,7 @@
 #include "qjson/parser.h"
 
 #include "userconfig.h"
+#include "musicfetcher.h"
 
 enum {
     OperationNone,
@@ -161,6 +162,20 @@ void MusicCollector::loadList()
     currentReply = manager->get(QNetworkRequest(url));
     currentReply->setProperty(KeyOperation, OperationLoadPlaylist);
     connect(currentReply, SIGNAL(finished()), SLOT(requestFinished()), Qt::QueuedConnection);
+
+    emit loadingChanged();
+}
+
+void MusicCollector::loadFromFetcher(MusicFetcher *fetcher)
+{
+    if (currentReply && currentReply->isRunning())
+        currentReply->abort();
+
+    currentReply = 0;
+
+    idList.clear();
+    for (int i = 0; i < fetcher->count(); i++)
+        idList.append(fetcher->dataAt(i)->musicId().toInt());
 
     emit loadingChanged();
 }

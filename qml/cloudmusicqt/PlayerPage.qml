@@ -18,6 +18,7 @@ Page {
     property string callerTypeDJ: "DJ"
 
     property bool isMusicCollected: false
+    property bool isMusicCollecting: false
 
     function playPrivateFM() {
         bringToFront()
@@ -83,6 +84,32 @@ Page {
         }
     }
 
+    function collectCurrentRadio(like) {
+        if (callerType != callerTypePrivateFM || currentMusic == null)
+            return
+
+        var opt = { id: currentMusic.musicId, like: like, sec: Math.floor(audio.position / 1000) }
+        var s = function() {
+            isMusicCollected = like
+            collector.loadList()
+            isMusicCollecting = false
+        }
+        var f = function(err) {
+            isMusicCollecting = false
+            console.log("like radio err", err)
+        }
+        isMusicCollecting = true
+        Api.collectRadioMusic(opt, s, f)
+    }
+
+    function addCurrentRadioToTrash() {
+        if (callerType != callerTypePrivateFM || currentMusic == null)
+            return
+
+        var opt = { id: currentMusic.musicId, sec: Math.floor(audio.position / 1000) }
+        Api.addRadioMusicToTrash(opt, collector.loadList, new Function())
+    }
+
     orientationLock: PageOrientation.LockPortrait
 
     onStatusChanged: {
@@ -144,6 +171,7 @@ Page {
                 audio.source = currentMusic.getUrl(MusicInfo.LowQuality)
                 audio.play()
 
+                isMusicCollecting = false
                 if (callerType == callerTypePrivateFM)
                     isMusicCollected = currentMusic.starred
                 else
@@ -341,8 +369,20 @@ Page {
             spacing: 12
 
             ControlButton {
-                buttonName: isMusicCollected ? "loved" : "love"
-                onClicked: infoBanner.showDevelopingMsg()
+                buttonName: collector.loading || isMusicCollecting
+                            ? "loved_dis" : isMusicCollected ? "loved" : "love"
+                visible: currentMusic != null
+                enabled: !(collector.loading || isMusicCollecting)
+                onClicked: {
+                    if (callerType == callerTypePrivateFM)
+                        collectCurrentRadio(!isMusicCollected)
+                    else if (callerType == callerTypeDJ)
+                        infoBanner.showDevelopingMsg()
+                    else if (isMusicCollected)
+                        collector.removeCollection(currentMusic.musicId)
+                    else
+                        collector.collectMusic(currentMusic.musicId)
+                }
             }
 
             ControlButton {
@@ -372,9 +412,13 @@ Page {
             }
 
             ControlButton {
-                visible: callerType == callerTypePrivateFM
+                visible: callerType == callerTypePrivateFM && currentMusic != null
                 buttonName: "del"
-                onClicked: infoBanner.showDevelopingMsg()
+                enabled: audio.status != Audio.Loading
+                onClicked: {
+                    addCurrentRadioToTrash()
+                    audio.playNextMusic()
+                }
             }
         }
     }

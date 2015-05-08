@@ -10,7 +10,10 @@ var CloudMusicApi = {
     DISCOVERY_HOTSPOT: "http://music.163.com/api/discovery/hotspot",
 
     USER_DETAIL: "http://music.163.com/api/user/detail/",
-    USER_PLAYLIST: "http://music.163.com/api/user/playlist/"
+    USER_PLAYLIST: "http://music.163.com/api/user/playlist/",
+
+    RADIO_LIKE: "http://music.163.com/api/radio/like",
+    RADIO_TRASH_ADD: "http://music.163.com/api/radio/trash/add"
 };
 
 var ApiRequest = function(url, method) {
@@ -99,5 +102,28 @@ function getUserDetail(uid, onSuccess, onFailure) {
 function getUserPlayList(uid, onSuccess, onFailure) {
     var req = new ApiRequest(CloudMusicApi.USER_PLAYLIST);
     req.setQuery({ offset: 0, limit: 1000, uid: uid });
+    req.sendRequest(onSuccess, onFailure);
+}
+
+function collectRadioMusic(option, onSuccess, onFailure) {
+    var req = new ApiRequest(CloudMusicApi.RADIO_LIKE);
+    var query = {
+        alg: "itembased",
+        trackId: option.id,
+        like: option.like ? "true" : "false",
+        time: option.sec
+    }
+    req.setQuery(query);
+    req.sendRequest(onSuccess, onFailure);
+}
+
+function addRadioMusicToTrash(option, onSuccess, onFailure) {
+    var req = new ApiRequest(CloudMusicApi.RADIO_TRASH_ADD);
+    var query = {
+        alg: "itembased",
+        songId: option.id,
+        time: option.sec
+    }
+    req.setQuery(query);
     req.sendRequest(onSuccess, onFailure);
 }

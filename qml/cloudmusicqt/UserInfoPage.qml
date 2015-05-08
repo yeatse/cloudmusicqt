@@ -81,6 +81,10 @@ Page {
             iconSource: "toolbar-back"
             onClicked: pageStack.pop()
         }
+        ToolButton {
+            iconSource: "gfx/logo_icon.png"
+            onClicked: player.bringToFront()
+        }
     }
 
     ListView {
@@ -148,6 +152,7 @@ Page {
                     text: "动态%1 关注%2 粉丝%3".arg(eventCount).arg(followingCount).arg(followerCount)
                 }
             }
+            Item { width: 1; height: 1 }
         }
         section {
             property: "group"

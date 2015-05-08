@@ -73,35 +73,6 @@ PageStackWindow {
         }
     }
 
-    ToolBarLayout {
-        id: mainTools
-
-        ToolButton {
-            iconSource: "toolbar-back"
-            onClicked: pageStack.depth <= 1 ? quitTimer.running ? Qt.quit() : quitTimer.start() : pageStack.pop()
-            Timer {
-                id: quitTimer
-                interval: infoBanner.timeout
-                onRunningChanged: if (running) infoBanner.showMessage("再按一次退出")
-            }
-        }
-
-        ToolButton {
-            iconSource: "toolbar-search"
-            onClicked: infoBanner.showDevelopingMsg()
-        }
-
-        ToolButton {
-            iconSource: "gfx/logo_icon.png"
-            onClicked: player.bringToFront()
-        }
-
-        ToolButton {
-            iconSource: "toolbar-settings"
-            onClicked: infoBanner.showDevelopingMsg()
-        }
-    }
-
     PlayerPage {
         id: player
     }

@@ -62,6 +62,11 @@ Page {
                     }
                     listModel.append(prop)
                 }
+
+                var rawData = getRawData()
+                if (rawData && rawData.result && rawData.specialType == 5) {
+                    collector.loadFromFetcher(fetcher)
+                }
             }
         }
 

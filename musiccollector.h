@@ -8,6 +8,8 @@ class QDeclarativeView;
 class QNetworkAccessManager;
 class QNetworkReply;
 
+class MusicFetcher;
+
 namespace QJson { class Parser; }
 
 class MusicCollector : public QObject
@@ -25,6 +27,8 @@ public:
 
     Q_INVOKABLE void refresh();
     Q_INVOKABLE void loadList();
+
+    Q_INVOKABLE void loadFromFetcher(MusicFetcher* fetcher);
 
     bool loading() const;
 

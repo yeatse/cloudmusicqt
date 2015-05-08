@@ -27,6 +27,28 @@ Page {
         Api.getHotSopt(s, f)
     }
 
+    tools: ToolBarLayout {
+        ToolButton {
+            iconSource: "toolbar-back"
+            onClicked: quitTimer.running ? Qt.quit() : quitTimer.start()
+            Timer {
+                id: quitTimer
+                interval: infoBanner.timeout
+                onRunningChanged: if (running) infoBanner.showMessage("再按一次退出")
+            }
+        }
+
+        ToolButton {
+            iconSource: "toolbar-search"
+            onClicked: infoBanner.showDevelopingMsg()
+        }
+
+        ToolButton {
+            iconSource: "toolbar-settings"
+            onClicked: infoBanner.showDevelopingMsg()
+        }
+    }
+
     Connections {
         target: user
         onUserChanged: getHotSpotList()
@@ -53,6 +75,15 @@ Page {
                     onClicked: user.loggedIn ? pageStack.push(Qt.resolvedUrl("UserInfoPage.qml"),{userId: qmlApi.getUserId()})
                                              : pageStack.push(Qt.resolvedUrl("LoginPage.qml"))
                 }
+            }
+
+            CategoryListItem {
+                property variant music: player.currentMusic
+                visible: music != null
+                iconSource: music ? Api.getScaledImageUrl(music.albumImageUrl, 80) : ""
+                title: "正在播放"
+                subTitle: music ? music.artistsDisplayName + " - " + music.musicName : ""
+                onClicked: player.bringToFront()
             }
 
             CategoryListItem {
