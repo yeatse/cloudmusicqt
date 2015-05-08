@@ -1,7 +1,7 @@
 TEMPLATE = app
 TARGET = cloudmusicqt
 
-VERSION = 1.0.0
+VERSION = 0.9.0
 DEFINES += VER=\\\"$$VERSION\\\"
 
 QT += network webkit
@@ -28,6 +28,8 @@ SOURCES += main.cpp \
 
 include(qjson/qjson.pri)
 DEFINES += QJSON_MAKEDLL
+
+TRANSLATIONS += i18n/cloudmusicqt_zh.ts
 
 folder_symbian3.source = qml/cloudmusicqt
 folder_symbian3.target = qml

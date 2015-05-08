@@ -5,6 +5,7 @@ import QtMobility.systeminfo 1.1
 import com.yeatse.cloudmusic 1.0
 
 import "../js/api.js" as Api
+import "../js/util.js" as Util
 
 PageStackWindow {
     id: app
@@ -12,10 +13,7 @@ PageStackWindow {
     focus: true
     platformSoftwareInputPanelEnabled: true
 
-    initialPage: MainPage {
-        id: mainPage
-        tools: mainTools
-    }
+    initialPage: MainPage {}
 
     QtObject {
         id: internal
@@ -24,6 +22,7 @@ PageStackWindow {
             Api.qmlApi = qmlApi
             resetBackground()
             user.initialize()
+            checkForUpdate()
         }
 
         function resetBackground() {
@@ -32,6 +31,43 @@ PageStackWindow {
                 if (child != volumeIndicator && child.hasOwnProperty("color")) {
                     child.z = -2
                     break
+                }
+            }
+        }
+
+        function checkForUpdate() {
+            var xhr = new XMLHttpRequest
+            xhr.onreadystatechange = function() {
+                        if (xhr.readyState == XMLHttpRequest.DONE) {
+                            if (xhr.status == 200) {
+                                var resp = JSON.parse(xhr.responseText)
+                                if (Util.verNameToVerCode(appVersion) < Util.verNameToVerCode(resp.ver)) {
+                                    var diag = updateDialogComp.createObject(app)
+                                    diag.message = "当前版本: %1\n最新版本: %2\n%3".arg(appVersion).arg(resp.ver).arg(resp.desc)
+                                    diag.downUrl = resp.url
+                                    diag.open()
+                                }
+                            }
+                        }
+                    }
+            xhr.open("GET", "http://yeatse.com/cloudmusicqt/symbian.ver")
+            xhr.send(null)
+        }
+
+        property Component updateDialogComp: Component {
+            QueryDialog {
+                id: dialog
+                property bool closing: false
+                property string downUrl
+                titleText: "目测新版本粗现"
+                acceptButtonText: "下载"
+                rejectButtonText: "取消"
+                onAccepted: Qt.openUrlExternally(downUrl)
+                onStatusChanged: {
+                    if (status == DialogStatus.Closing)
+                        closing = true
+                    else if (status == DialogStatus.Closed && closing)
+                        dialog.destroy()
                 }
             }
         }

@@ -49,6 +49,7 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 
     viewer->rootContext()->setContextProperty("qmlApi", new QmlApi(viewer.data()));
     viewer->rootContext()->setContextProperty("collector", new MusicCollector(viewer.data()));
+    viewer->rootContext()->setContextProperty("appVersion", app->applicationVersion());
 
     viewer->setMainQmlFile(QLatin1String("qml/cloudmusicqt/main.qml"));
     viewer->showExpanded();
