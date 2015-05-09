@@ -10,7 +10,7 @@
 #include "blurreditem.h"
 #include "musiccollector.h"
 
-//#define PROXY_HOST "localhost"
+#define PROXY_HOST "localhost"
 
 #ifdef PROXY_HOST
 #include <QNetworkProxy>

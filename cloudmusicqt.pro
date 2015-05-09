@@ -4,7 +4,7 @@ TARGET = cloudmusicqt
 VERSION = 0.9.1
 DEFINES += VER=\\\"$$VERSION\\\"
 
-QT += network webkit
+QT += network webkit sql
 
 CONFIG += mobility
 MOBILITY += multimedia systeminfo
@@ -17,7 +17,9 @@ HEADERS += \
     musicfetcher.h \
     blurreditem.h \
     musiccollector.h \
-    musicdownloader.h
+    musicdownloader.h \
+    musicdownloaddatabase.h \
+    musicdownloadmodel.h
 
 SOURCES += main.cpp \
     qmlapi.cpp \
@@ -26,7 +28,9 @@ SOURCES += main.cpp \
     musicfetcher.cpp \
     blurreditem.cpp \
     musiccollector.cpp \
-    musicdownloader.cpp
+    musicdownloader.cpp \
+    musicdownloaddatabase.cpp \
+    musicdownloadmodel.cpp
 
 include(qjson/qjson.pri)
 DEFINES += QJSON_MAKEDLL
