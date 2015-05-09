@@ -88,6 +88,11 @@ Page {
         if (callerType != callerTypePrivateFM || currentMusic == null)
             return
 
+        if (!user.loggedIn) {
+            pageStack.push(Qt.resolvedUrl("LoginPage.qml"))
+            return
+        }
+
         var opt = { id: currentMusic.musicId, like: like, sec: Math.floor(audio.position / 1000) }
         var s = function() {
             isMusicCollected = like
@@ -371,7 +376,7 @@ Page {
             ControlButton {
                 buttonName: collector.loading || isMusicCollecting
                             ? "loved_dis" : isMusicCollected ? "loved" : "love"
-                visible: currentMusic != null
+                visible: callerType != callerTypeDJ && currentMusic != null
                 enabled: !(collector.loading || isMusicCollecting)
                 onClicked: {
                     if (callerType == callerTypePrivateFM)
@@ -449,6 +454,11 @@ Page {
     Menu {
         id: menu
         MenuLayout {
+            MenuItem {
+                visible: callerType != "" && callerType != callerTypeDJ && callerType != callerTypePrivateFM
+                text: "播放列表"
+                onClicked: pageStack.push(Qt.resolvedUrl(callerType + ".qml"), callerParam)
+            }
             MenuItem {
                 text: "评论"
                 onClicked: infoBanner.showDevelopingMsg()

@@ -1,7 +1,7 @@
 TEMPLATE = app
 TARGET = cloudmusicqt
 
-VERSION = 0.9.0
+VERSION = 0.9.1
 DEFINES += VER=\\\"$$VERSION\\\"
 
 QT += network webkit
@@ -16,7 +16,8 @@ HEADERS += \
     userconfig.h \
     musicfetcher.h \
     blurreditem.h \
-    musiccollector.h
+    musiccollector.h \
+    musicdownloader.h
 
 SOURCES += main.cpp \
     qmlapi.cpp \
@@ -24,7 +25,8 @@ SOURCES += main.cpp \
     userconfig.cpp \
     musicfetcher.cpp \
     blurreditem.cpp \
-    musiccollector.cpp
+    musiccollector.cpp \
+    musicdownloader.cpp
 
 include(qjson/qjson.pri)
 DEFINES += QJSON_MAKEDLL
