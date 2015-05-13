@@ -14,6 +14,8 @@ class UserConfig : public QObject
 public:
     static const char* KeyCookies;
     static const char* KeyUserId;
+    static const char* KeyDownloadQuality;
+    static const char* KeyDownloadDirectory;
 
     ~UserConfig();
 
