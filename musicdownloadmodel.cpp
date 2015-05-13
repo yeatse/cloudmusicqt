@@ -14,6 +14,8 @@ MusicDownloadModel::MusicDownloadModel(QObject *parent) :
     names[SizeRole] = "size";
     setRoleNames(names);
     refresh();
+
+    connect(MusicDownloader::Instance(), SIGNAL(statusChanged(MusicDownloadItem*)), SLOT(onStatusChanged(MusicDownloadItem*)));
 }
 
 MusicDownloadModel::~MusicDownloadModel()
@@ -36,7 +38,7 @@ QVariant MusicDownloadModel::data(const QModelIndex &index, int role) const
     const MusicDownloadItem* ptr = mDataList.at(row);
     switch (role)
     {
-    case IdRole: return QString::number(ptr->id);
+    case IdRole: return ptr->id;
     case NameRole: return ptr->name;
     case ArtistRole: return ptr->artist;
     case StatusRole: return ptr->status;
@@ -46,15 +48,16 @@ QVariant MusicDownloadModel::data(const QModelIndex &index, int role) const
     }
 }
 
-void MusicDownloadModel::onDownloadTaskChanged(MusicDownloadItem *task)
+void MusicDownloadModel::onStatusChanged(MusicDownloadItem *task)
 {
-    foreach (MusicDownloadItem* myData, mDataList) {
+    for (int i = 0; i < mDataList.size(); i++) {
+        MusicDownloadItem* myData = mDataList.at(i);
         if (myData->id == task->id) {
-            myData->name = task->name;
-            myData->artist = task->artist;
             myData->status = task->status;
             myData->progress = task->progress;
             myData->size = task->size;
+            emit dataChanged(index(i), index(i));
+            break;
         }
     }
 }

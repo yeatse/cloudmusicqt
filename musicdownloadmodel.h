@@ -26,7 +26,7 @@ public:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
 
 private slots:
-    void onDownloadTaskChanged(MusicDownloadItem* task);
+    void onStatusChanged(MusicDownloadItem* task);
     void refresh();
 
 private:

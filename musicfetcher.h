@@ -79,11 +79,13 @@ public:
     static QString getMusicUrl(const QByteArray& id, const QString& ext = "mp3");
     static QString getPictureUrl(const QByteArray& id);
 
+    static MusicInfo* fromVariant(const QVariant& data, int ver = 0, QObject* parent = 0);
+
 private:
     QVariant rawData;
     int dataVersion;
 
-    int id;
+    QString id;
     int duration;
     bool starred;
     QString name;
@@ -136,9 +138,6 @@ signals:
 
 private slots:
     void requestFinished();
-
-private:
-    MusicInfo* createDataFromMap(const QVariant& data, int ver = 0);
 
 private:
     QVariantMap mRawData;
