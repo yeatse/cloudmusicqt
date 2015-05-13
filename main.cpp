@@ -9,12 +9,17 @@
 #include "musiccollector.h"
 #include "blurreditem.h"
 #include "musiccollector.h"
+#include "musicdownloader.h"
+#include "musicdownloadmodel.h"
 
 #define PROXY_HOST "localhost"
 
 #ifdef PROXY_HOST
 #include <QNetworkProxy>
 #endif
+
+#define RegisterPlugin(Plugin) \
+    qmlRegisterType<Plugin>("com.yeatse.cloudmusic", 1, 0, #Plugin)
 
 Q_DECL_EXPORT int main(int argc, char *argv[])
 {
@@ -31,9 +36,10 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     QNetworkProxy::setApplicationProxy(QNetworkProxy(QNetworkProxy::HttpProxy, PROXY_HOST, 8888));
 #endif
 
-    qmlRegisterType<MusicInfo>("com.yeatse.cloudmusic", 1, 0, "MusicInfo");
-    qmlRegisterType<MusicFetcher>("com.yeatse.cloudmusic", 1, 0, "MusicFetcher");
-    qmlRegisterType<BlurredItem>("com.yeatse.cloudmusic", 1, 0, "BlurredItem");
+    RegisterPlugin(MusicInfo);
+    RegisterPlugin(MusicFetcher);
+    RegisterPlugin(BlurredItem);
+    RegisterPlugin(MusicDownloadModel);
 
     QWebSettings::globalSettings()->setUserStyleSheetUrl(QUrl::fromLocalFile("qml/js/default_theme.css"));
 
@@ -50,6 +56,11 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     viewer->rootContext()->setContextProperty("qmlApi", new QmlApi(viewer.data()));
     viewer->rootContext()->setContextProperty("collector", new MusicCollector(viewer.data()));
     viewer->rootContext()->setContextProperty("appVersion", app->applicationVersion());
+
+    MusicDownloader* downloader = MusicDownloader::Instance();
+    viewer->rootContext()->setContextProperty("downloader", downloader);
+    downloader->pause();
+    QObject::connect(viewer->engine(), SIGNAL(quit()), downloader, SLOT(pause()));
 
     viewer->setMainQmlFile(QLatin1String("qml/cloudmusicqt/main.qml"));
     viewer->showExpanded();

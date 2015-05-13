@@ -2,6 +2,7 @@
 #define MUSICDOWNLOADER_H
 
 #include <QObject>
+#include <QVariant>
 
 #include "singletonbase.h"
 
@@ -11,7 +12,11 @@ class MusicDownloadItem
 {
 public:
     enum Status {
-        Pending, Running, Paused, Completed, Error
+        Pending, Running, Paused, Completed, Failed
+    };
+
+    enum Error {
+        NoError, FileIOError, CanceledError, NetworkError
     };
 
     QString id;
@@ -36,14 +41,15 @@ class MusicDownloader : public QObject
     DECLARE_SINGLETON(MusicDownloader)
     Q_PROPERTY(QString targetDir READ targetDir WRITE setTargetDir NOTIFY targetDirChanged)
     Q_PROPERTY(int quality READ quality WRITE setQuality NOTIFY qualityChanged)
+
+public slots:
+    void addTask(MusicInfo* info);
+    void pause(const QString& id = QString());
+    void resume(const QString& id = QString());
+    void cancel(const QString& id = QString());
+    void retry(const QString& id = QString());
+
 public:
-    Q_INVOKABLE void addTask(MusicInfo* item);
-
-    Q_INVOKABLE void pause(const QString& id = QString());
-    Q_INVOKABLE void resume(const QString& id = QString());
-    Q_INVOKABLE void cancel(const QString& id = QString());
-    Q_INVOKABLE void retry(const QString& id = QString());
-
     QString targetDir() const;
     void setTargetDir(const QString& dir);
 
@@ -54,9 +60,6 @@ signals:
     void targetDirChanged();
     void qualityChanged();
 
-    void dataChanged();
-    void statusChanged(MusicDownloadItem* task);
-
 private slots:
     void startNextTask();
     void slotDataChanged();
@@ -65,7 +68,7 @@ private slots:
 private:
     MusicDownloader();
     MusicDownloadItem* createItemFromInfo(MusicInfo* info);
-    QString getSaveFileName(MusicDownloadItem* item);
+    QString getSaveFileName(MusicInfo* info);
 
 private:
     QList<MusicDownloadTask*> runningTasks;

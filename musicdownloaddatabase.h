@@ -25,7 +25,13 @@ public:
     bool cancel(const QString& id = QString());
     bool retry(const QString& id = QString());
 
+    bool removeCompletedTask(const QString& id = QString());
+
+    QList<MusicDownloadItem*> getAllRecords();
     QList<MusicDownloadItem*> getAllPendingRecords();
+
+signals:
+    void dataChanged(MusicDownloadItem* item = 0);
 
 private:
     MusicDownloadDatabase();

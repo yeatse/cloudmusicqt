@@ -108,26 +108,8 @@ MusicInfo::~MusicInfo()
 
 QString MusicInfo::getUrl(Quality quality) const
 {
-    MusicData* data;
-
-    if (quality == LowQuality) data = lMusic;
-    else if (quality == MiddleQuality) data = mMusic;
-    else if (quality == HighQuality) data = hMusic;
-    else data = 0;
-
+    MusicData* data = getMusicData(quality);
     return data ? getMusicUrl(data->dfsId, data->extension) : "";
-}
-
-int MusicInfo::fileSize(Quality quality) const
-{
-    MusicData* data;
-
-    if (quality == LowQuality) data = lMusic;
-    else if (quality == MiddleQuality) data = mMusic;
-    else if (quality == HighQuality) data = hMusic;
-    else data = 0;
-
-    return data ? data->size : 0;
 }
 
 QString MusicInfo::musicId() const
@@ -167,6 +149,31 @@ QString MusicInfo::artistsDisplayName() const
         list.append(artist->name);
     }
     return list.join(",");
+}
+
+MusicData* MusicInfo::getMusicData(Quality quality) const
+{
+    if (quality == LowQuality) return lMusic;
+    if (quality == MiddleQuality) return mMusic;
+    if (quality == HighQuality) return hMusic;
+    return 0;
+}
+
+int MusicInfo::fileSize(Quality quality) const
+{
+    MusicData* data = getMusicData(quality);
+    return data ? data->size : 0;
+}
+
+QString MusicInfo::extension(Quality quality) const
+{
+    MusicData* data = getMusicData(quality);
+    return data ? data->extension : "";
+}
+
+QVariant MusicInfo::getRawData() const
+{
+    return rawData;
 }
 
 static QByteArray getEncryptedId(const QByteArray& songId)

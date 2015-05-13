@@ -25,25 +25,30 @@ public:
 signals:
     void finished();
     void dataChanged();
-    void aborted();
 
 public slots:
     void start();
+    void abort();
 
 private slots:
     void downloadReadyRead();
     void downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
+    void downloadFinished();
 
 private:
     MusicDownloader* caller;
     MusicDownloadItem* task;
+
     QNetworkAccessManager* manager;
+    QFile* output;
+    QPointer<QNetworkReply> reply;
+    int startPos;
 
     friend class MusicDownloader;
 };
 
 MusicDownloadTask::MusicDownloadTask(MusicDownloader *caller, MusicDownloadItem *task)
-    : QObject(0), caller(caller), task(task), manager(0)
+    : QObject(0), caller(caller), task(task), manager(0), output(0), startPos(0)
 {
     QThread* thread = new QThread;
     thread->start(QThread::IdlePriority);
@@ -61,38 +66,136 @@ MusicDownloadTask::~MusicDownloadTask()
 
 void MusicDownloadTask::start()
 {
+    if (output) return;
+
     if (task->status == MusicDownloadItem::Paused) {
+        emit finished();
+        return;
+    }
+
+    output = new QFile(task->fileName, this);
+    if (output->exists()) {
+        if (output->size() == task->size) {
+            task->status = MusicDownloadItem::Completed;
+            emit finished();
+            return;
+        }
+        if (!output->remove()) {
+            task->status = MusicDownloadItem::Failed;
+            task->errcode = MusicDownloadItem::FileIOError;
+            emit finished();
+            return;
+        }
+    }
+
+    output->setFileName(task->fileName + ".tmp");
+    if (output->exists()) {
+        if (task->progress == 0 || task->progress != output->size()) {
+            if (!output->remove()) {
+                task->status = MusicDownloadItem::Failed;
+                task->errcode = MusicDownloadItem::FileIOError;
+                emit finished();
+                return;
+            }
+            task->progress = 0;
+        }
+    }
+    else {
+        task->progress = 0;
+    }
+
+    if (!output->open(QIODevice::WriteOnly | QIODevice::Append)) {
+        task->status = MusicDownloadItem::Failed;
+        task->errcode = MusicDownloadItem::FileIOError;
         emit finished();
         return;
     }
 
     task->errcode = 0;
     task->status = MusicDownloadItem::Running;
-
-    emit dataChanged();
+    startPos = task->progress;
 
     if (!manager)
         manager = new QNetworkAccessManager(this);
 
-    QEventLoop loop;
+    QNetworkRequest req;
+    req.setUrl(task->remoteUrl);
+    // TODO: set range header to continue
 
-    QNetworkReply* reply = manager->get(QNetworkRequest(QUrl(task->remoteUrl)));
+    reply = manager->get(req);
     connect(reply, SIGNAL(readyRead()), SLOT(downloadReadyRead()));
     connect(reply, SIGNAL(downloadProgress(qint64,qint64)), SLOT(downloadProgress(qint64,qint64)));
-    connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
-    connect(this, SIGNAL(aborted()), &loop, SLOT(quit()));
+    connect(reply, SIGNAL(finished()), SLOT(downloadFinished()));
 
-    loop.exec();
+    emit dataChanged();
+}
+
+void MusicDownloadTask::abort()
+{
+    if (reply && reply->isRunning())
+        reply->abort();
 }
 
 void MusicDownloadTask::downloadReadyRead()
 {
+    if (output->write(reply->readAll()) < 0) {
+        task->status = MusicDownloadItem::Failed;
+        task->errcode = MusicDownloadItem::FileIOError;
 
+        if (reply && reply->isRunning()) {
+            reply->abort();
+        }
+    }
 }
 
 void MusicDownloadTask::downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
 {
+    if (task->status != MusicDownloadItem::Running) {
+        if (reply && reply->isRunning()) {
+            reply->abort();
+        }
+    }
+    else {
+        task->progress = startPos + bytesReceived;
+        task->size = startPos + bytesTotal;
+        emit dataChanged();
+    }
+}
 
+void MusicDownloadTask::downloadFinished()
+{
+    reply->deleteLater();
+    output->close();
+
+    if (reply->error() == QNetworkReply::OperationCanceledError) {
+        if (task->status != MusicDownloadItem::Paused) {
+            task->progress = 0;
+            output->remove();
+        }
+        emit finished();
+        return;
+    }
+
+    if (reply->error() != QNetworkReply::NoError) {
+        task->status = MusicDownloadItem::Failed;
+        task->errcode = MusicDownloadItem::NetworkError;
+        task->progress = 0;
+        output->remove();
+        emit finished();
+        return;
+    }
+
+    QFile::remove(task->fileName);
+    if (output->rename(task->fileName)) {
+        task->status = MusicDownloadItem::Completed;
+    }
+    else {
+        task->status = MusicDownloadItem::Failed;
+        task->errcode = MusicDownloadItem::FileIOError;
+        task->progress = 0;
+        output->remove();
+    }
+    emit finished();
 }
 
 MusicDownloader::MusicDownloader() : QObject(), mQuality(0)
@@ -107,15 +210,14 @@ MusicDownloader::MusicDownloader() : QObject(), mQuality(0)
         dir.mkpath(dir.absolutePath());
 }
 
-void MusicDownloader::addTask(MusicInfo *item)
+void MusicDownloader::addTask(MusicInfo *info)
 {
     MusicDownloadDatabase* db = MusicDownloadDatabase::Instance();
-    if (db->containsRecord(item->id))
+    if (db->containsRecord(info->musicId()))
         return;
 
-    MusicDownloadItem* i = createItemFromInfo(item);
-    db->addRecord(i);
-
+    MusicDownloadItem* item = createItemFromInfo(info);
+    db->addRecord(item);
     QTimer::singleShot(0, this, SLOT(startNextTask()));
 }
 
@@ -129,7 +231,7 @@ void MusicDownloader::pause(const QString &id)
 
         if (id.isEmpty() || id == item->id) {
             item->status = MusicDownloadItem::Paused;
-            QTimer::singleShot(0, task, SIGNAL(aborted()));
+            QTimer::singleShot(0, task, SLOT(abort()));
         }
     }
 }
@@ -155,8 +257,9 @@ void MusicDownloader::cancel(const QString &id)
     foreach (MusicDownloadTask* task, runningTasks) {
         MusicDownloadItem* item = task->task;
         if (id.isEmpty() || id == item->id) {
-            item->status = MusicDownloadItem::Paused;
-            QTimer::singleShot(0, task, SIGNAL(aborted()));
+            item->status = MusicDownloadItem::Failed;
+            item->errcode = MusicDownloadItem::CanceledError;
+            QTimer::singleShot(0, task, SLOT(abort()));
         }
     }
 }
@@ -166,7 +269,7 @@ void MusicDownloader::retry(const QString &id)
     MusicDownloadDatabase::Instance()->retry(id);
     foreach (MusicDownloadTask* task, runningTasks) {
         MusicDownloadItem* item = task->task;
-        if (item->status != MusicDownloadItem::Error)
+        if (item->status != MusicDownloadItem::Failed)
             continue;
 
         if (id.isEmpty() || id == item->id) {
@@ -254,18 +357,20 @@ MusicDownloadItem* MusicDownloader::createItemFromInfo(MusicInfo *info)
     item->artist = info->artistsDisplayName();
     item->status = MusicDownloadItem::Pending;
     item->progress = 0;
-    item->size = info->fileSize(mQuality);
-    item->remoteUrl = info->getUrl(mQuality);
-    item->fileName = getSaveFileName(item);
+    item->size = info->fileSize((MusicInfo::Quality)mQuality);
+    item->remoteUrl = info->getUrl((MusicInfo::Quality)mQuality);
+    item->fileName = getSaveFileName(info);
     item->errcode = 0;
-    item->rawData = info->rawData;
+    item->rawData = info->getRawData();
     return item;
 }
 
-QString MusicDownloader::getSaveFileName(MusicDownloadItem *item)
+QString MusicDownloader::getSaveFileName(MusicInfo *info)
 {
     QString path = mTargetDir + QDir::separator()
-            + item->artist + " - " + item->name + "." + QFileInfo(item->remoteUrl).suffix();
+            + info->artistsDisplayName()
+            + " - " + info->musicName()
+            + "." + info->extension((MusicInfo::Quality)mQuality);
 
     return QDir::cleanPath(path);
 }

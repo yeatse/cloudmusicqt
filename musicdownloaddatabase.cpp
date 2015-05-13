@@ -18,6 +18,7 @@ enum { DatabaseVersion_V0 };
 MusicDownloadDatabase::MusicDownloadDatabase() : QObject(0),
     parser(new QJson::Parser), serializer(new QJson::Serializer)
 {
+    serializer->setIndentMode(QJson::IndentCompact);
     initDatabase();
 }
 
@@ -105,7 +106,12 @@ bool MusicDownloadDatabase::addRecord(MusicDownloadItem *record)
     query.addBindValue(record->fileName);
     query.addBindValue(serializer->serialize(record->rawData));
 
-    return query.exec();
+    if (query.exec()) {
+        emit dataChanged(record);
+        return true;
+    }
+
+    return false;
 }
 
 bool MusicDownloadDatabase::updateRecord(MusicDownloadItem *record)
@@ -121,7 +127,12 @@ bool MusicDownloadDatabase::updateRecord(MusicDownloadItem *record)
                           record->id),
                     db);
 
-    return query.exec();
+    if (query.exec()) {
+        emit dataChanged(record);
+        return true;
+    }
+
+    return false;
 }
 
 bool MusicDownloadDatabase::pause(const QString &id)
@@ -136,7 +147,12 @@ bool MusicDownloadDatabase::pause(const QString &id)
                           QString::number(MusicDownloadItem::Running)),
                     db);
 
-    return query.exec();
+    if (query.exec()) {
+        emit dataChanged();
+        return true;
+    }
+
+    return false;
 }
 
 bool MusicDownloadDatabase::resume(const QString &id)
@@ -150,7 +166,12 @@ bool MusicDownloadDatabase::resume(const QString &id)
                           QString::number(MusicDownloadItem::Paused)),
                     db);
 
-    return query.exec();
+    if (query.exec()) {
+        emit dataChanged();
+        return true;
+    }
+
+    return false;
 }
 
 bool MusicDownloadDatabase::cancel(const QString &id)
@@ -163,7 +184,12 @@ bool MusicDownloadDatabase::cancel(const QString &id)
                           QString::number(MusicDownloadItem::Completed)),
                     db);
 
-    return query.exec();
+    if (query.exec()) {
+        emit dataChanged();
+        return true;
+    }
+
+    return false;
 }
 
 bool MusicDownloadDatabase::retry(const QString &id)
@@ -174,10 +200,39 @@ bool MusicDownloadDatabase::retry(const QString &id)
 
     QSqlQuery query(q.arg(TABLE_NAME,
                           QString::number(MusicDownloadItem::Pending),
-                          QString::number(MusicDownloadItem::Error)),
+                          QString::number(MusicDownloadItem::Failed)),
                     db);
 
-    return query.exec();
+    if (query.exec()) {
+        emit dataChanged();
+        return true;
+    }
+
+    return false;
+}
+
+bool MusicDownloadDatabase::removeCompletedTask(const QString &id)
+{
+    QString q("DELETE FROM %1 WHERE status = %2");
+    if (!id.isEmpty())
+        q.append(" AND mid = ").append(id);
+
+    QSqlQuery query(q.arg(TABLE_NAME, QString::number(MusicDownloadItem::Completed)),
+                    db);
+
+    if (query.exec()) {
+        emit dataChanged();
+        return true;
+    }
+
+    return false;
+}
+
+QList<MusicDownloadItem*> MusicDownloadDatabase::getAllRecords()
+{
+    QString q("SELECT * FROM %1");
+    QSqlQuery query(q.arg(TABLE_NAME), db);
+    return buildListFromQuery(query);
 }
 
 QList<MusicDownloadItem*> MusicDownloadDatabase::getAllPendingRecords()

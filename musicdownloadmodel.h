@@ -25,9 +25,8 @@ public:
     int rowCount(const QModelIndex &parent) const;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
 
-private slots:
-    void onStatusChanged(MusicDownloadItem* task);
-    void refresh();
+public slots:
+    void refresh(MusicDownloadItem* item = 0);
 
 private:
     QList<MusicDownloadItem*> mDataList;
