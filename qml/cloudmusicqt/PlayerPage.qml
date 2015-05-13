@@ -182,7 +182,7 @@ Page {
                 else
                     isMusicCollected = collector.isCollected(currentMusic.musicId)
 
-                if (app.pageStack.currentPage != page) {
+                if (app.pageStack.currentPage != page || !Qt.application.active) {
                     qmlApi.showNotification("网易云音乐",
                                             "正在播放: %1 - %2".arg(currentMusic.artistsDisplayName).arg(currentMusic.musicName),
                                             1)
