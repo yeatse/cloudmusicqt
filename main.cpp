@@ -8,7 +8,6 @@
 #include "musicfetcher.h"
 #include "musiccollector.h"
 #include "blurreditem.h"
-#include "musiccollector.h"
 #include "musicdownloader.h"
 #include "musicdownloadmodel.h"
 
