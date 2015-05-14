@@ -33,9 +33,6 @@ public:
 public slots:
     void freeResource();
 
-signals:
-    void dataChanged(MusicDownloadItem* item = 0);
-
 private:
     MusicDownloadDatabase();
     void initDatabase();

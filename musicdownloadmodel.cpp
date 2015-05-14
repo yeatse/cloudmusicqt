@@ -1,7 +1,6 @@
 #include "musicdownloadmodel.h"
 
 #include "musicdownloader.h"
-#include "musicdownloaddatabase.h"
 
 MusicDownloadModel::MusicDownloadModel(QObject *parent) :
     QAbstractListModel(parent)
@@ -13,10 +12,11 @@ MusicDownloadModel::MusicDownloadModel(QObject *parent) :
     names[StatusRole] = "status";
     names[ProgressRole] = "progress";
     names[SizeRole] = "size";
+    names[ErrCodeRole] = "errcode";
     setRoleNames(names);
     refresh();
 
-    connect(MusicDownloadDatabase::Instance(), SIGNAL(dataChanged(MusicDownloadItem*)),
+    connect(MusicDownloader::Instance(), SIGNAL(dataChanged(MusicDownloadItem*)),
             SLOT(refresh(MusicDownloadItem*)));
 }
 
@@ -46,6 +46,7 @@ QVariant MusicDownloadModel::data(const QModelIndex &index, int role) const
     case StatusRole: return ptr->status;
     case ProgressRole: return ptr->progress;
     case SizeRole: return ptr->size;
+    case ErrCodeRole: return ptr->errcode;
     default: return QVariant();
     }
 }
@@ -57,6 +58,7 @@ void MusicDownloadModel::refresh(MusicDownloadItem *item)
             MusicDownloadItem* myData = mDataList.at(i);
             if (myData->id == item->id) {
                 myData->status = item->status;
+                myData->errcode = item->errcode;
                 myData->progress = item->progress;
                 myData->size = item->size;
                 emit dataChanged(index(i), index(i));
@@ -67,7 +69,6 @@ void MusicDownloadModel::refresh(MusicDownloadItem *item)
 
     beginResetModel();
     qDeleteAll(mDataList);
-    mDataList.clear();
-    mDataList << MusicDownloadDatabase::Instance()->getAllRecords();
+    mDataList = MusicDownloader::Instance()->getAllRecords();
     endResetModel();
 }

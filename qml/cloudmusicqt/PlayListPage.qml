@@ -71,8 +71,8 @@ Page {
         }
 
         function fillMetaData() {
-            var ret = getRawData().result
-            coverImageUrl = Api.getScaledImageUrl(ret.coverImgUrl, 200)
+            var ret = getRawData().playlist
+            coverImageUrl = Api.getScaledImageUrl(qmlApi.getNetEaseImageUrl(ret.coverImgId), 200)
             name = ret.name
             author = ret.creator.nickname
             favoriteCount = ret.subscribedCount

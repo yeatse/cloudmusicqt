@@ -219,9 +219,11 @@ void MusicDownloader::addTask(MusicInfo *info)
     if (db->containsRecord(info->musicId()))
         return;
 
-    MusicDownloadItem* item = createItemFromInfo(info);
-    db->addRecord(item);
+    QScopedPointer<MusicDownloadItem> item(createItemFromInfo(info));
+    db->addRecord(item.data());
     QTimer::singleShot(0, this, SLOT(startNextTask()));
+
+    emit dataChanged();
 }
 
 void MusicDownloader::pause(const QString &id)
@@ -237,6 +239,7 @@ void MusicDownloader::pause(const QString &id)
             QTimer::singleShot(0, task, SLOT(abort()));
         }
     }
+    emit dataChanged();
 }
 
 void MusicDownloader::resume(const QString &id)
@@ -252,6 +255,7 @@ void MusicDownloader::resume(const QString &id)
         }
     }
     QTimer::singleShot(0, this, SLOT(startNextTask()));
+    emit dataChanged();
 }
 
 void MusicDownloader::cancel(const QString &id)
@@ -265,6 +269,7 @@ void MusicDownloader::cancel(const QString &id)
             QTimer::singleShot(0, task, SLOT(abort()));
         }
     }
+    emit dataChanged();
 }
 
 void MusicDownloader::retry(const QString &id)
@@ -280,6 +285,7 @@ void MusicDownloader::retry(const QString &id)
         }
     }
     QTimer::singleShot(0, this, SLOT(startNextTask()));
+    emit dataChanged();
 }
 
 bool MusicDownloader::containsRecord(const QString &id) const
@@ -321,6 +327,23 @@ void MusicDownloader::setQuality(const int &quality)
     }
 }
 
+QList<MusicDownloadItem*> MusicDownloader::getAllRecords()
+{
+    QList<MusicDownloadItem*> list = MusicDownloadDatabase::Instance()->getAllRecords();
+    foreach (MusicDownloadTask* task, runningTasks) {
+        foreach (MusicDownloadItem* item, list) {
+            if (item->id == task->task->id) {
+                item->status = task->task->status;
+                item->errcode = task->task->errcode;
+                item->progress = task->task->progress;
+                item->size = task->task->size;
+                break;
+            }
+        }
+    }
+    return list;
+}
+
 void MusicDownloader::startNextTask()
 {
     if (runningTasks.size() >= MaxSimultaneousTasks)
@@ -341,7 +364,7 @@ void MusicDownloader::slotDataChanged()
 {
     MusicDownloadTask* task = qobject_cast<MusicDownloadTask*>(sender());
     if (task)
-        MusicDownloadDatabase::Instance()->updateRecord(task->task);
+        emit dataChanged(task->task);
 }
 
 void MusicDownloader::slotTaskFinished()
@@ -355,6 +378,7 @@ void MusicDownloader::slotTaskFinished()
     task->deleteLater();
 
     QTimer::singleShot(0, this, SLOT(startNextTask()));
+    emit dataChanged(task->task);
 }
 
 MusicDownloadItem* MusicDownloader::createItemFromInfo(MusicInfo *info)
@@ -375,10 +399,11 @@ MusicDownloadItem* MusicDownloader::createItemFromInfo(MusicInfo *info)
 
 QString MusicDownloader::getSaveFileName(MusicInfo *info)
 {
-    QString path = mTargetDir + QDir::separator()
-            + info->artistsDisplayName()
+    QString fileName = info->artistsDisplayName()
             + " - " + info->musicName()
             + "." + info->extension((MusicInfo::Quality)mQuality);
+    fileName.replace(QRegExp("[\\\\/:\\*\\?\\\"<>\\|]"), "_");
+    QString path = mTargetDir + QDir::separator() + fileName;
 
     return QDir::cleanPath(path);
 }

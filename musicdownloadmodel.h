@@ -16,7 +16,8 @@ public:
         ArtistRole,
         StatusRole,
         ProgressRole,
-        SizeRole
+        SizeRole,
+        ErrCodeRole
     };
 
     explicit MusicDownloadModel(QObject *parent = 0);

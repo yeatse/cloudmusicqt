@@ -13,6 +13,7 @@
 
 #include "networkaccessmanagerfactory.h"
 #include "userconfig.h"
+#include "musicfetcher.h"
 
 #include "qjson/json_parser.hh"
 
@@ -118,6 +119,11 @@ QVariant QmlApi::jsonParse(const QString &text)
 bool QmlApi::compareVariant(const QVariant &left, const QVariant &right)
 {
     return left == right;
+}
+
+QString QmlApi::getNetEaseImageUrl(const QString &imgId)
+{
+    return MusicInfo::getPictureUrl(imgId.toAscii());
 }
 
 #ifdef Q_OS_SYMBIAN

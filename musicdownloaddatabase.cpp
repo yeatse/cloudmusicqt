@@ -4,6 +4,7 @@
 #include <QDesktopServices>
 #include <QSqlQuery>
 #include <QVariant>
+#include <QDebug>
 
 #include "musicdownloader.h"
 
@@ -32,12 +33,8 @@ MusicDownloadDatabase::~MusicDownloadDatabase()
 void MusicDownloadDatabase::initDatabase()
 {
     if (!QSqlDatabase::contains(TABLE_NAME)) {
-        QDir dir(QDesktopServices::storageLocation(QDesktopServices::DataLocation));
-        if (!dir.exists())
-            dir.mkpath(dir.absolutePath());
-
         db = new QSqlDatabase(QSqlDatabase::addDatabase("QSQLITE", TABLE_NAME));
-        db->setDatabaseName(dir.absoluteFilePath(DB_FILE_NAME));
+        db->setDatabaseName(DB_FILE_NAME);
         db->open();
         createTable();
     }
@@ -115,12 +112,7 @@ bool MusicDownloadDatabase::addRecord(MusicDownloadItem *record)
     query.addBindValue(record->fileName);
     query.addBindValue(serializer->serialize(record->rawData));
 
-    if (query.exec()) {
-        emit dataChanged(record);
-        return true;
-    }
-
-    return false;
+    return query.exec();
 }
 
 bool MusicDownloadDatabase::updateRecord(MusicDownloadItem *record)
@@ -136,12 +128,7 @@ bool MusicDownloadDatabase::updateRecord(MusicDownloadItem *record)
                           record->id),
                     *db);
 
-    if (query.exec()) {
-        emit dataChanged(record);
-        return true;
-    }
-
-    return false;
+    return query.exec();
 }
 
 bool MusicDownloadDatabase::pause(const QString &id)
@@ -156,12 +143,7 @@ bool MusicDownloadDatabase::pause(const QString &id)
                           QString::number(MusicDownloadItem::Running)),
                     *db);
 
-    if (query.exec()) {
-        emit dataChanged();
-        return true;
-    }
-
-    return false;
+    return query.exec();
 }
 
 bool MusicDownloadDatabase::resume(const QString &id)
@@ -175,12 +157,7 @@ bool MusicDownloadDatabase::resume(const QString &id)
                           QString::number(MusicDownloadItem::Paused)),
                     *db);
 
-    if (query.exec()) {
-        emit dataChanged();
-        return true;
-    }
-
-    return false;
+    return query.exec();
 }
 
 bool MusicDownloadDatabase::cancel(const QString &id)
@@ -193,12 +170,7 @@ bool MusicDownloadDatabase::cancel(const QString &id)
                           QString::number(MusicDownloadItem::Completed)),
                     *db);
 
-    if (query.exec()) {
-        emit dataChanged();
-        return true;
-    }
-
-    return false;
+    return query.exec();
 }
 
 bool MusicDownloadDatabase::retry(const QString &id)
@@ -212,12 +184,7 @@ bool MusicDownloadDatabase::retry(const QString &id)
                           QString::number(MusicDownloadItem::Failed)),
                     *db);
 
-    if (query.exec()) {
-        emit dataChanged();
-        return true;
-    }
-
-    return false;
+    return query.exec();
 }
 
 bool MusicDownloadDatabase::removeCompletedTask(const QString &id)
@@ -229,17 +196,12 @@ bool MusicDownloadDatabase::removeCompletedTask(const QString &id)
     QSqlQuery query(q.arg(TABLE_NAME, QString::number(MusicDownloadItem::Completed)),
                     *db);
 
-    if (query.exec()) {
-        emit dataChanged();
-        return true;
-    }
-
-    return false;
+    return query.exec();
 }
 
 QList<MusicDownloadItem*> MusicDownloadDatabase::getAllRecords()
 {
-    QString q("SELECT * FROM %1");
+    QString q("SELECT * FROM %1 ORDER BY addtime DESC");
     QSqlQuery query(q.arg(TABLE_NAME), *db);
     return buildListFromQuery(query);
 }

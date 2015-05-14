@@ -57,9 +57,12 @@ public:
     int quality() const;
     void setQuality(const int& quality);
 
+    QList<MusicDownloadItem*> getAllRecords();
+
 signals:
     void targetDirChanged();
     void qualityChanged();
+    void dataChanged(MusicDownloadItem* item = 0);
 
 private slots:
     void startNextTask();

@@ -19,6 +19,7 @@ Page {
 
     property bool isMusicCollected: false
     property bool isMusicCollecting: false
+    property bool isMusicDownloaded: false
 
     function playPrivateFM() {
         bringToFront()
@@ -181,6 +182,8 @@ Page {
                     isMusicCollected = currentMusic.starred
                 else
                     isMusicCollected = collector.isCollected(currentMusic.musicId)
+
+                isMusicDownloaded = downloader.containsRecord(currentMusic.musicId)
 
                 if (app.pageStack.currentPage != page || !Qt.application.active) {
                     qmlApi.showNotification("网易云音乐",
@@ -456,12 +459,15 @@ Page {
         MenuLayout {
             MenuItem {
                 enabled: currentMusic != null
-                text: currentMusic == null || !downloader.containsRecord(currentMusic.musicId) ? "下载" : "查看下载"
+                text: currentMusic == null || !isMusicDownloaded ? "下载" : "查看下载"
                 onClicked: {
-                    if (downloader.containsRecord(currentMusic.musicId))
-                        ;
-                    else
+                    if (isMusicDownloaded) {
+                        pageStack.push(Qt.resolvedUrl("DownloadPage.qml"))
+                    }
+                    else {
                         downloader.addTask(currentMusic)
+                        isMusicDownloaded = true
+                    }
                 }
             }
             MenuItem {

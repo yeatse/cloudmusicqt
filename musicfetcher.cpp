@@ -153,9 +153,9 @@ QString MusicInfo::artistsDisplayName() const
 
 MusicData* MusicInfo::getMusicData(Quality quality) const
 {
-    if (quality == LowQuality) return lMusic;
-    if (quality == MiddleQuality) return mMusic;
-    if (quality == HighQuality) return hMusic;
+    if (quality == LowQuality) return lMusic ? lMusic : mMusic ? mMusic : hMusic;
+    if (quality == MiddleQuality) return mMusic ? mMusic : lMusic ? lMusic : hMusic;
+    if (quality == HighQuality) return hMusic ? hMusic : mMusic ? mMusic : lMusic;
     return 0;
 }
 
@@ -192,7 +192,7 @@ QString MusicInfo::getMusicUrl(const QByteArray &id, const QString &ext)
 {
     static int control = 0;
     return QString("http://m%1.music.126.net/%2/%3.%4?v=%5")
-            .arg(/*QString::number(control++ % 2 + 1)*/"2", getEncryptedId(id), id, ext,
+            .arg(QString::number((control++ % 4) / 2 + 1), getEncryptedId(id), id, ext,
                  QString::number(QDateTime::currentDateTime().toTime_t() % 1000000000));
 }
 
@@ -200,7 +200,7 @@ QString MusicInfo::getPictureUrl(const QByteArray &id)
 {
     static int control = 0;
     return QString("http://p%1.music.126.net/%2/%3.jpg")
-            .arg(QString::number(control++ % 2 + 3), getEncryptedId(id), id);
+            .arg(QString::number((control++ % 4) / 2 + 3), getEncryptedId(id), id);
 }
 
 MusicInfo* MusicInfo::fromVariant(const QVariant &data, int ver, QObject *parent)
@@ -212,6 +212,9 @@ MusicInfo* MusicInfo::fromVariant(const QVariant &data, int ver, QObject *parent
     const QVariantMap& map = data.toMap();
 
     result->rawData = data;
+    if (ver == -1)
+        ver = map.contains("dt") ? 1 : 0;
+
     result->dataVersion = ver;
 
     if (ver == 0) {
@@ -321,8 +324,11 @@ void MusicFetcher::loadPlayList(const int &listId)
     if (mCurrentReply && mCurrentReply->isRunning())
         mCurrentReply->abort();
 
-    QUrl url(QString(ApiBaseUrl).append("/playlist/detail"));
+    QUrl url(QString(ApiBaseUrl).append("/v2/playlist/detail"));
     url.addEncodedQueryItem("id", QByteArray::number(listId));
+    url.addEncodedQueryItem("t", "0");
+    url.addEncodedQueryItem("n", "1000");
+    url.addEncodedQueryItem("s", "0");
 
     mCurrentReply = mNetworkAccessManager->get(QNetworkRequest(url));
     mCurrentReply->setProperty(RequestOptionQuery, OptionQueryPlayList);
@@ -454,7 +460,8 @@ void MusicFetcher::requestFinished()
 
     QString query = mCurrentReply->property(RequestOptionQuery).toString();
     if (query == OptionQueryPlayList) {
-        list = mRawData.value("result").toMap().value("tracks").toList();
+        list = mRawData.value("playlist").toMap().value("tracks").toList();
+        dataVer = 1;
     }
     else if (query == OptionQueryDJDetail) {
         list << mRawData.value("program").toMap().value("mainSong");
