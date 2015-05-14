@@ -38,7 +38,6 @@ class MusicDownloadTask;
 class MusicDownloader : public QObject
 {
     Q_OBJECT
-    DECLARE_SINGLETON(MusicDownloader)
     Q_PROPERTY(QString targetDir READ targetDir WRITE setTargetDir NOTIFY targetDirChanged)
     Q_PROPERTY(int quality READ quality WRITE setQuality NOTIFY qualityChanged)
 
@@ -50,6 +49,8 @@ public slots:
     void retry(const QString& id = QString());
 
 public:
+    Q_INVOKABLE bool containsRecord(const QString& id) const;
+
     QString targetDir() const;
     void setTargetDir(const QString& dir);
 
@@ -75,6 +76,8 @@ private:
 
     int mQuality;
     QString mTargetDir;
+
+    DECLARE_SINGLETON(MusicDownloader)
 };
 
 #endif // MUSICDOWNLOADER_H

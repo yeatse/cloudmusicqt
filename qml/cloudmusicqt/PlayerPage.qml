@@ -455,7 +455,17 @@ Page {
         id: menu
         MenuLayout {
             MenuItem {
-                visible: callerType != "" && callerType != callerTypeDJ && callerType != callerTypePrivateFM
+                enabled: currentMusic != null
+                text: currentMusic == null || !downloader.containsRecord(currentMusic.musicId) ? "下载" : "查看下载"
+                onClicked: {
+                    if (downloader.containsRecord(currentMusic.musicId))
+                        ;
+                    else
+                        downloader.addTask(currentMusic)
+                }
+            }
+            MenuItem {
+                enabled: callerType != "" && callerType != callerTypeDJ && callerType != callerTypePrivateFM
                 text: "播放列表"
                 onClicked: pageStack.push(Qt.resolvedUrl(callerType + ".qml"), callerParam)
             }

@@ -16,7 +16,7 @@
 enum { DatabaseVersion_V0 };
 
 MusicDownloadDatabase::MusicDownloadDatabase() : QObject(0),
-    parser(new QJson::Parser), serializer(new QJson::Serializer)
+    db(0), parser(new QJson::Parser), serializer(new QJson::Serializer)
 {
     serializer->setIndentMode(QJson::IndentCompact);
     initDatabase();
@@ -24,6 +24,7 @@ MusicDownloadDatabase::MusicDownloadDatabase() : QObject(0),
 
 MusicDownloadDatabase::~MusicDownloadDatabase()
 {
+    delete db;
     delete parser;
     delete serializer;
 }
@@ -35,14 +36,22 @@ void MusicDownloadDatabase::initDatabase()
         if (!dir.exists())
             dir.mkpath(dir.absolutePath());
 
-        db = QSqlDatabase::addDatabase("QSQLITE", TABLE_NAME);
-        db.setDatabaseName(dir.absoluteFilePath(DB_FILE_NAME));
-        db.open();
+        db = new QSqlDatabase(QSqlDatabase::addDatabase("QSQLITE", TABLE_NAME));
+        db->setDatabaseName(dir.absoluteFilePath(DB_FILE_NAME));
+        db->open();
         createTable();
     }
     else {
-        db = QSqlDatabase::database(TABLE_NAME);
+        db = new QSqlDatabase(QSqlDatabase::database(TABLE_NAME));
     }
+}
+
+// Database must be closed within main event loop
+// This should be a bug in Qt4, as Qt5 needn't this hack
+void MusicDownloadDatabase::freeResource()
+{
+    delete db;
+    db = 0;
 }
 
 void MusicDownloadDatabase::createTable()
@@ -66,26 +75,26 @@ void MusicDownloadDatabase::createTable()
             ")";
 
     if (databaseVersion() == DatabaseVersion_V0) {
-        db.exec(createTbl);
+        db->exec(createTbl);
     }
 }
 
 int MusicDownloadDatabase::databaseVersion()
 {
-    QSqlQuery query("PRAGMA user_version", db);
+    QSqlQuery query("PRAGMA user_version", *db);
     return query.exec() && query.first() ? query.value(0).toInt() : -1;
 }
 
 bool MusicDownloadDatabase::setDatabaseVersion(const int &version)
 {
-    QSqlQuery query(QString("PRAGMA user_version = %1").arg(version), db);
+    QSqlQuery query(QString("PRAGMA user_version = %1").arg(version), *db);
     return query.exec();
 }
 
 bool MusicDownloadDatabase::containsRecord(const QString &musicId)
 {
     QString q("SELECT COUNT(1) FROM %1 WHERE mid = %2");
-    QSqlQuery query(q.arg(TABLE_NAME, musicId), db);
+    QSqlQuery query(q.arg(TABLE_NAME, musicId), *db);
     return query.exec() && query.first() && query.value(0).toInt() > 0;
 }
 
@@ -95,7 +104,7 @@ bool MusicDownloadDatabase::addRecord(MusicDownloadItem *record)
               " (mid,name,artist,status,progress,size,url,fname,rawdata) "
               "VALUES (?,?,?,?,?,?,?,?,?)");
 
-    QSqlQuery query(q.arg(TABLE_NAME), db);
+    QSqlQuery query(q.arg(TABLE_NAME), *db);
     query.addBindValue(record->id);
     query.addBindValue(record->name);
     query.addBindValue(record->artist);
@@ -125,7 +134,7 @@ bool MusicDownloadDatabase::updateRecord(MusicDownloadItem *record)
                           QString::number(record->size),
                           QString::number(record->errcode),
                           record->id),
-                    db);
+                    *db);
 
     if (query.exec()) {
         emit dataChanged(record);
@@ -145,7 +154,7 @@ bool MusicDownloadDatabase::pause(const QString &id)
                           QString::number(MusicDownloadItem::Paused),
                           QString::number(MusicDownloadItem::Pending),
                           QString::number(MusicDownloadItem::Running)),
-                    db);
+                    *db);
 
     if (query.exec()) {
         emit dataChanged();
@@ -164,7 +173,7 @@ bool MusicDownloadDatabase::resume(const QString &id)
     QSqlQuery query(q.arg(TABLE_NAME,
                           QString::number(MusicDownloadItem::Pending),
                           QString::number(MusicDownloadItem::Paused)),
-                    db);
+                    *db);
 
     if (query.exec()) {
         emit dataChanged();
@@ -182,7 +191,7 @@ bool MusicDownloadDatabase::cancel(const QString &id)
 
     QSqlQuery query(q.arg(TABLE_NAME,
                           QString::number(MusicDownloadItem::Completed)),
-                    db);
+                    *db);
 
     if (query.exec()) {
         emit dataChanged();
@@ -201,7 +210,7 @@ bool MusicDownloadDatabase::retry(const QString &id)
     QSqlQuery query(q.arg(TABLE_NAME,
                           QString::number(MusicDownloadItem::Pending),
                           QString::number(MusicDownloadItem::Failed)),
-                    db);
+                    *db);
 
     if (query.exec()) {
         emit dataChanged();
@@ -218,7 +227,7 @@ bool MusicDownloadDatabase::removeCompletedTask(const QString &id)
         q.append(" AND mid = ").append(id);
 
     QSqlQuery query(q.arg(TABLE_NAME, QString::number(MusicDownloadItem::Completed)),
-                    db);
+                    *db);
 
     if (query.exec()) {
         emit dataChanged();
@@ -231,7 +240,7 @@ bool MusicDownloadDatabase::removeCompletedTask(const QString &id)
 QList<MusicDownloadItem*> MusicDownloadDatabase::getAllRecords()
 {
     QString q("SELECT * FROM %1");
-    QSqlQuery query(q.arg(TABLE_NAME), db);
+    QSqlQuery query(q.arg(TABLE_NAME), *db);
     return buildListFromQuery(query);
 }
 
@@ -239,7 +248,7 @@ QList<MusicDownloadItem*> MusicDownloadDatabase::getAllPendingRecords()
 {
     QString q("SELECT * FROM %1 WHERE status = %2");
     QSqlQuery query(q.arg(TABLE_NAME, QString::number(MusicDownloadItem::Pending)),
-                    db);
+                    *db);
     return buildListFromQuery(query);
 }
 

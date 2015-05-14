@@ -10,6 +10,7 @@
 #include "blurreditem.h"
 #include "musicdownloader.h"
 #include "musicdownloadmodel.h"
+#include "musicdownloaddatabase.h"
 
 #define PROXY_HOST "localhost"
 
@@ -59,7 +60,8 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     MusicDownloader* downloader = MusicDownloader::Instance();
     viewer->rootContext()->setContextProperty("downloader", downloader);
     downloader->pause();
-    QObject::connect(viewer->engine(), SIGNAL(quit()), downloader, SLOT(pause()));
+    QObject::connect(qApp, SIGNAL(aboutToQuit()), downloader, SLOT(pause()));
+    QObject::connect(qApp, SIGNAL(aboutToQuit()), MusicDownloadDatabase::Instance(), SLOT(freeResource()));
 
     viewer->setMainQmlFile(QLatin1String("qml/cloudmusicqt/main.qml"));
     viewer->showExpanded();

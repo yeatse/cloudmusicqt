@@ -30,6 +30,9 @@ public:
     QList<MusicDownloadItem*> getAllRecords();
     QList<MusicDownloadItem*> getAllPendingRecords();
 
+public slots:
+    void freeResource();
+
 signals:
     void dataChanged(MusicDownloadItem* item = 0);
 
@@ -45,7 +48,7 @@ private:
     MusicDownloadItem* createItemFromQuery(QSqlQuery& query);
 
 private:
-    QSqlDatabase db;
+    QSqlDatabase* db;
     QJson::Parser* parser;
     QJson::Serializer* serializer;
 };

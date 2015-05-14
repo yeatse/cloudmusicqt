@@ -8,6 +8,7 @@
 #include <QDesktopServices>
 #include <QDir>
 #include <QFileInfo>
+#include <QDebug>
 
 #include "musicdownloaddatabase.h"
 #include "musicfetcher.h"
@@ -202,9 +203,11 @@ MusicDownloader::MusicDownloader() : QObject(), mQuality(0)
 {
     UserConfig* cfg = UserConfig::Instance();
     mQuality = cfg->getSetting(UserConfig::KeyDownloadQuality, MusicInfo::HighQuality).toInt();
+    if (mQuality < MusicInfo::LowQuality || mQuality > MusicInfo::HighQuality)
+        mQuality = MusicInfo::HighQuality;
+
     mTargetDir = cfg->getSetting(UserConfig::KeyDownloadDirectory,
                                  QDesktopServices::storageLocation(QDesktopServices::MusicLocation)).toString();
-
     QDir dir(mTargetDir);
     if (!dir.exists())
         dir.mkpath(dir.absolutePath());
@@ -277,6 +280,11 @@ void MusicDownloader::retry(const QString &id)
         }
     }
     QTimer::singleShot(0, this, SLOT(startNextTask()));
+}
+
+bool MusicDownloader::containsRecord(const QString &id) const
+{
+    return MusicDownloadDatabase::Instance()->containsRecord(id);
 }
 
 QString MusicDownloader::targetDir() const

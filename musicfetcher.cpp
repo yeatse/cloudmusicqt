@@ -192,7 +192,7 @@ QString MusicInfo::getMusicUrl(const QByteArray &id, const QString &ext)
 {
     static int control = 0;
     return QString("http://m%1.music.126.net/%2/%3.%4?v=%5")
-            .arg(QString::number(control++ % 2 + 1), getEncryptedId(id), id, ext,
+            .arg(/*QString::number(control++ % 2 + 1)*/"2", getEncryptedId(id), id, ext,
                  QString::number(QDateTime::currentDateTime().toTime_t() % 1000000000));
 }
 
