@@ -83,6 +83,15 @@ PageStackWindow {
         }
     }
 
+    Connections {
+        target: downloader
+        onDownloadCompleted: {
+            if (success) {
+
+            }
+        }
+    }
+
     CloudMusicUser {
         id: user
     }

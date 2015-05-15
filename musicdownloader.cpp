@@ -373,12 +373,18 @@ void MusicDownloader::slotTaskFinished()
     if (!task)
         return;
 
-    MusicDownloadDatabase::Instance()->updateRecord(task->task);
+    MusicDownloadItem* item = task->task;
+    MusicDownloadDatabase::Instance()->updateRecord(item);
     runningTasks.removeAll(task);
     task->deleteLater();
 
     QTimer::singleShot(0, this, SLOT(startNextTask()));
-    emit dataChanged(task->task);
+    emit dataChanged(item);
+
+    if (item->status == MusicDownloadItem::Completed)
+        emit downloadCompleted(true, item->name);
+    else if (item->status == MusicDownloadItem::Failed)
+        emit downloadCompleted(false, item->name);
 }
 
 MusicDownloadItem* MusicDownloader::createItemFromInfo(MusicInfo *info)

@@ -64,6 +64,8 @@ signals:
     void qualityChanged();
     void dataChanged(MusicDownloadItem* item = 0);
 
+    void downloadCompleted(bool success, QString musicName);
+
 private slots:
     void startNextTask();
     void slotDataChanged();
