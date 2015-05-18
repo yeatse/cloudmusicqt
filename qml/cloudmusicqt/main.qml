@@ -107,7 +107,7 @@ PageStackWindow {
 
     VolumeIndicator {
         id: volumeIndicator
-        volume: Math.min(deviceInfo.voiceRingtoneVolume, 50)
+        volume: Math.min(deviceInfo.voiceRingtoneVolume, 30)
     }
 
     InfoBanner {

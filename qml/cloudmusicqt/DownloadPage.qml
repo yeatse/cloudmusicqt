@@ -93,6 +93,11 @@ Page {
                 onClicked: downloader.retry(contextMenu.musicId)
             }
         }
+
+        onStatusChanged: {
+            if (status == DialogStatus.Closed)
+                app.focus = true
+        }
     }
 
     ScrollDecorator { flickableItem: listView }

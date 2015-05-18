@@ -1,7 +1,7 @@
 TEMPLATE = app
 TARGET = cloudmusicqt
 
-VERSION = 0.9.5
+VERSION = 0.9.1
 DEFINES += VER=\\\"$$VERSION\\\"
 
 QT += network webkit sql
