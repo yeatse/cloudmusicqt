@@ -16,7 +16,7 @@ public:
     };
 
     enum Error {
-        NoError, FileIOError, CanceledError, NetworkError
+        NoError, FileIOError, CanceledError, NetworkError, FileRemovedError
     };
 
     QString id;
@@ -46,10 +46,12 @@ public slots:
     void pause(const QString& id = QString());
     void resume(const QString& id = QString());
     void cancel(const QString& id = QString());
-    void retry(const QString& id = QString());
+    void retry(const QString& id);
+    void removeCompletedTask(const QString& id);
 
 public:
     Q_INVOKABLE bool containsRecord(const QString& id) const;
+    Q_INVOKABLE QString getCompletedFile(const QString& id) const;
 
     QString targetDir() const;
     void setTargetDir(const QString& dir);

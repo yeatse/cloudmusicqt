@@ -4,6 +4,7 @@
 #include <QApplication>
 #include <QPixmap>
 #include <QDesktopServices>
+#include <QFile>
 #include <QDebug>
 
 #ifdef Q_OS_SYMBIAN
@@ -124,6 +125,11 @@ bool QmlApi::compareVariant(const QVariant &left, const QVariant &right)
 QString QmlApi::getNetEaseImageUrl(const QString &imgId)
 {
     return MusicInfo::getPictureUrl(imgId.toAscii());
+}
+
+bool QmlApi::isFileExists(const QString &fileName)
+{
+    return QFile::exists(fileName);
 }
 
 #ifdef Q_OS_SYMBIAN

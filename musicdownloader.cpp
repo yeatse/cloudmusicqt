@@ -121,7 +121,10 @@ void MusicDownloadTask::start()
 
     QNetworkRequest req;
     req.setUrl(task->remoteUrl);
-    // TODO: set range header to continue
+    if (startPos > 0) {
+        QByteArray range = "bytes=" + QByteArray::number(startPos) + "-";
+        req.setRawHeader("Range", range);
+    }
 
     reply = manager->get(req);
     connect(reply, SIGNAL(readyRead()), SLOT(downloadReadyRead()));
@@ -274,23 +277,37 @@ void MusicDownloader::cancel(const QString &id)
 
 void MusicDownloader::retry(const QString &id)
 {
-    MusicDownloadDatabase::Instance()->retry(id);
-    foreach (MusicDownloadTask* task, runningTasks) {
-        MusicDownloadItem* item = task->task;
-        if (item->status != MusicDownloadItem::Failed)
-            continue;
+    QScopedPointer<MusicDownloadItem> item(MusicDownloadDatabase::Instance()->getRecord(id));
+    if (!item)
+        return;
 
-        if (id.isEmpty() || id == item->id) {
-            item->status = MusicDownloadItem::Pending;
-        }
-    }
-    QTimer::singleShot(0, this, SLOT(startNextTask()));
+    cancel(id);
+    removeCompletedTask(id);
+
+    QScopedPointer<MusicInfo> info(MusicInfo::fromVariant(item->rawData, -1));
+    if (info)
+        addTask(info.data());
+}
+
+void MusicDownloader::removeCompletedTask(const QString &id)
+{
+    MusicDownloadDatabase* db = MusicDownloadDatabase::Instance();
+    QScopedPointer<MusicDownloadItem> item(db->getRecord(id));
+    if (item && item->status == MusicDownloadItem::Completed)
+        QFile::remove(item->fileName);
+    db->removeCompletedTask(id);
     emit dataChanged();
 }
 
 bool MusicDownloader::containsRecord(const QString &id) const
 {
     return MusicDownloadDatabase::Instance()->containsRecord(id);
+}
+
+QString MusicDownloader::getCompletedFile(const QString &id) const
+{
+    QScopedPointer<MusicDownloadItem> item(MusicDownloadDatabase::Instance()->getRecord(id));
+    return item && item->status == MusicDownloadItem::Completed ? item->fileName : "";
 }
 
 QString MusicDownloader::targetDir() const

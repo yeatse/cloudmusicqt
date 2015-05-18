@@ -16,6 +16,7 @@ Page {
 
     property string callerTypePrivateFM: "PrivateFM"
     property string callerTypeDJ: "DJ"
+    property string callerTypeDownload: "DownloadPage"
 
     property bool isMusicCollected: false
     property bool isMusicCollecting: false
@@ -74,6 +75,19 @@ Page {
         else {
             bringToFront()
         }
+    }
+
+    function playDownloader(index) {
+        callerType = callerTypeDownload
+        callerParam = null
+
+        musicFetcher.disconnect()
+        musicFetcher.loadFromDownloader()
+
+        if (audio.status == Audio.Loading)
+            audio.waitingIndex = index
+        else
+            audio.setCurrentMusic(index)
     }
 
     function bringToFront() {
@@ -174,7 +188,18 @@ Page {
             if (index >= 0 && index < musicFetcher.count) {
                 currentMusic = musicFetcher.dataAt(index)
                 currentIndex = index
-                audio.source = currentMusic.getUrl(MusicInfo.LowQuality)
+
+                var loc = downloader.getCompletedFile(currentMusic.musicId)
+                if (qmlApi.isFileExists(loc)) {
+                    audio.source = "file:///" + loc
+                }
+                else if (callerType == callerTypeDownload) {
+                    playNextMusic()
+                    return
+                }
+                else {
+                    audio.source = currentMusic.getUrl(MusicInfo.LowQuality)
+                }
                 audio.play()
 
                 isMusicCollecting = false
@@ -211,7 +236,7 @@ Page {
             else {
                 if (currentIndex < musicFetcher.count - 1)
                     setCurrentMusic(currentIndex + 1)
-                else
+                else if (callerType != callerTypeDownload)
                     setCurrentMusic(0)
             }
         }

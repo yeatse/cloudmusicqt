@@ -1,6 +1,7 @@
 #include "musicdownloadmodel.h"
 
 #include "musicdownloader.h"
+#include <QFile>
 
 MusicDownloadModel::MusicDownloadModel(QObject *parent) :
     QAbstractListModel(parent)
@@ -43,10 +44,18 @@ QVariant MusicDownloadModel::data(const QModelIndex &index, int role) const
     case IdRole: return ptr->id;
     case NameRole: return ptr->name;
     case ArtistRole: return ptr->artist;
-    case StatusRole: return ptr->status;
+    case StatusRole:
+        if (ptr->status == MusicDownloadItem::Completed && !QFile::exists(ptr->fileName))
+            return MusicDownloadItem::Failed;
+        else
+            return ptr->status;
     case ProgressRole: return ptr->progress;
     case SizeRole: return ptr->size;
-    case ErrCodeRole: return ptr->errcode;
+    case ErrCodeRole:
+        if (ptr->status == MusicDownloadItem::Completed && !QFile::exists(ptr->fileName))
+            return MusicDownloadItem::FileRemovedError;
+        else
+            return ptr->errcode;
     default: return QVariant();
     }
 }

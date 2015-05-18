@@ -10,6 +10,7 @@
 #include <QDateTime>
 
 #include "qjson/parser.h"
+#include "musicdownloader.h"
 
 static const char* ApiBaseUrl = "http://music.163.com/api";
 
@@ -375,6 +376,23 @@ void MusicFetcher::loadFromFetcher(MusicFetcher *other)
             mDataList.append(copy);
         }
     }
+    if (changed)
+        emit dataChanged();
+}
+
+void MusicFetcher::loadFromDownloader()
+{
+    reset();
+    bool changed = false;
+    QList<MusicDownloadItem*> list = MusicDownloader::Instance()->getAllRecords();
+    foreach (MusicDownloadItem* item, list) {
+        MusicInfo* info = MusicInfo::fromVariant(item->rawData, -1, this);
+        if (info) {
+            changed = true;
+            mDataList.append(info);
+        }
+    }
+    qDeleteAll(list);
     if (changed)
         emit dataChanged();
 }

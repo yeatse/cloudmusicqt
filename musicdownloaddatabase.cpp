@@ -214,6 +214,13 @@ QList<MusicDownloadItem*> MusicDownloadDatabase::getAllPendingRecords()
     return buildListFromQuery(query);
 }
 
+MusicDownloadItem* MusicDownloadDatabase::getRecord(const QString &musicId)
+{
+    QString q("SELECT * FROM %1 WHERE mid = %2");
+    QSqlQuery query(q.arg(TABLE_NAME, musicId), *db);
+    return query.exec() && query.first() ? createItemFromQuery(query) : 0;
+}
+
 QList<MusicDownloadItem*> MusicDownloadDatabase::buildListFromQuery(QSqlQuery &query)
 {
     QList<MusicDownloadItem*> result;

@@ -44,8 +44,8 @@ Page {
         }
 
         ToolButton {
-            iconSource: "toolbar-settings"
-            onClicked: infoBanner.showDevelopingMsg()
+            iconSource: "gfx/toolbar_extension.svg"
+            onClicked: pageStack.push(Qt.resolvedUrl("MorePage.qml"))
         }
     }
 

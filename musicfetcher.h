@@ -124,6 +124,7 @@ public:
     Q_INVOKABLE void loadDJDetail(const int &djId);
 
     Q_INVOKABLE void loadFromFetcher(MusicFetcher* other = 0);
+    Q_INVOKABLE void loadFromDownloader();
 
     Q_INVOKABLE MusicInfo* dataAt(const int& index) const;
 

@@ -30,6 +30,8 @@ public:
     QList<MusicDownloadItem*> getAllRecords();
     QList<MusicDownloadItem*> getAllPendingRecords();
 
+    MusicDownloadItem* getRecord(const QString& musicId);
+
 public slots:
     void freeResource();
 
