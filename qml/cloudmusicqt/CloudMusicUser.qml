@@ -21,7 +21,7 @@ QtObject {
 
     function refreshUserToken(token) {
         var f = function(err) {
-            console.log("refresh token failed: ", f)
+            console.log("refresh token failed: ", err)
             if (err != 0) {
                 loggedIn = false
                 userChanged()

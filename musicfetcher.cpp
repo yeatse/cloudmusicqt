@@ -10,6 +10,7 @@
 #include <QDateTime>
 
 #include "qjson/parser.h"
+#include "musicdownloader.h"
 
 static const char* ApiBaseUrl = "http://music.163.com/api";
 
@@ -108,31 +109,13 @@ MusicInfo::~MusicInfo()
 
 QString MusicInfo::getUrl(Quality quality) const
 {
-    MusicData* data;
-
-    if (quality == LowQuality) data = lMusic;
-    else if (quality == MiddleQuality) data = mMusic;
-    else if (quality == HighQuality) data = hMusic;
-    else data = 0;
-
+    MusicData* data = getMusicData(quality);
     return data ? getMusicUrl(data->dfsId, data->extension) : "";
-}
-
-int MusicInfo::fileSize(Quality quality) const
-{
-    MusicData* data;
-
-    if (quality == LowQuality) data = lMusic;
-    else if (quality == MiddleQuality) data = mMusic;
-    else if (quality == HighQuality) data = hMusic;
-    else data = 0;
-
-    return data ? data->size : 0;
 }
 
 QString MusicInfo::musicId() const
 {
-    return QString::number(id);
+    return id;
 }
 
 QString MusicInfo::musicName() const
@@ -169,6 +152,31 @@ QString MusicInfo::artistsDisplayName() const
     return list.join(",");
 }
 
+MusicData* MusicInfo::getMusicData(Quality quality) const
+{
+    if (quality == LowQuality) return lMusic ? lMusic : mMusic ? mMusic : hMusic;
+    if (quality == MiddleQuality) return mMusic ? mMusic : lMusic ? lMusic : hMusic;
+    if (quality == HighQuality) return hMusic ? hMusic : mMusic ? mMusic : lMusic;
+    return 0;
+}
+
+int MusicInfo::fileSize(Quality quality) const
+{
+    MusicData* data = getMusicData(quality);
+    return data ? data->size : 0;
+}
+
+QString MusicInfo::extension(Quality quality) const
+{
+    MusicData* data = getMusicData(quality);
+    return data ? data->extension : "";
+}
+
+QVariant MusicInfo::getRawData() const
+{
+    return rawData;
+}
+
 static QByteArray getEncryptedId(const QByteArray& songId)
 {
     QByteArray result;
@@ -185,7 +193,7 @@ QString MusicInfo::getMusicUrl(const QByteArray &id, const QString &ext)
 {
     static int control = 0;
     return QString("http://m%1.music.126.net/%2/%3.%4?v=%5")
-            .arg(QString::number(control++ % 2 + 1), getEncryptedId(id), id, ext,
+            .arg(QString::number((control++ % 4) / 2 + 1), getEncryptedId(id), id, ext,
                  QString::number(QDateTime::currentDateTime().toTime_t() % 1000000000));
 }
 
@@ -193,7 +201,61 @@ QString MusicInfo::getPictureUrl(const QByteArray &id)
 {
     static int control = 0;
     return QString("http://p%1.music.126.net/%2/%3.jpg")
-            .arg(QString::number(control++ % 2 + 3), getEncryptedId(id), id);
+            .arg(QString::number((control++ % 4) / 2 + 3), getEncryptedId(id), id);
+}
+
+MusicInfo* MusicInfo::fromVariant(const QVariant &data, int ver, QObject *parent)
+{
+    if (data.isNull() || !data.canConvert(QVariant::Map))
+        return 0;
+
+    MusicInfo* result = new MusicInfo(parent);
+    const QVariantMap& map = data.toMap();
+
+    result->rawData = data;
+    if (ver == -1)
+        ver = map.contains("dt") ? 1 : 0;
+
+    result->dataVersion = ver;
+
+    if (ver == 0) {
+        result->starred = map.value("starred").toBool();
+        result->name = map.value("name").toString();
+        result->id = map.value("id").toString();
+        result->duration = map.value("duration").toInt();
+        result->commentThreadId = map.value("commentThreadId").toString();
+
+        result->lMusic = MusicData::fromVariant(map.value("lMusic"));
+        result->mMusic = MusicData::fromVariant(map.value("mMusic"));
+        result->hMusic = MusicData::fromVariant(map.value("hMusic"));
+
+        result->album = AlbumData::fromVariant(map.value("album"));
+
+        foreach (const QVariant& artistData, map.value("artists").toList()) {
+            ArtistData* artist = ArtistData::fromVariant(artistData);
+            if (artist) result->artists.append(artist);
+        }
+    }
+    else {
+        result->starred = false;
+        result->name = map.value("name").toString();
+        result->id = map.value("id").toString();
+        result->duration = map.value("dt").toInt();
+        result->commentThreadId = QString("R_SO_4_%1").arg(result->id);
+
+        result->lMusic = MusicData::fromVariant(map.value("l"), ver);
+        result->mMusic = MusicData::fromVariant(map.value("m"), ver);
+        result->hMusic = MusicData::fromVariant(map.value("h"), ver);
+
+        result->album = AlbumData::fromVariant(map.value("al"), ver);
+
+        foreach (const QVariant& ar, map.value("ar").toList()) {
+            ArtistData* artist = ArtistData::fromVariant(ar);
+            if (artist) result->artists.append(artist);
+        }
+    }
+
+    return result;
 }
 
 MusicFetcher::MusicFetcher(QObject *parent) : QObject(parent),
@@ -263,8 +325,11 @@ void MusicFetcher::loadPlayList(const int &listId)
     if (mCurrentReply && mCurrentReply->isRunning())
         mCurrentReply->abort();
 
-    QUrl url(QString(ApiBaseUrl).append("/playlist/detail"));
+    QUrl url(QString(ApiBaseUrl).append("/v2/playlist/detail"));
     url.addEncodedQueryItem("id", QByteArray::number(listId));
+    url.addEncodedQueryItem("t", "0");
+    url.addEncodedQueryItem("n", "1000");
+    url.addEncodedQueryItem("s", "0");
 
     mCurrentReply = mNetworkAccessManager->get(QNetworkRequest(url));
     mCurrentReply->setProperty(RequestOptionQuery, OptionQueryPlayList);
@@ -305,12 +370,29 @@ void MusicFetcher::loadFromFetcher(MusicFetcher *other)
     bool changed = false;
     mRawData = other->mRawData;
     foreach (MusicInfo* info, other->mDataList) {
-        MusicInfo* copy = createDataFromMap(info->rawData, info->dataVersion);
+        MusicInfo* copy = MusicInfo::fromVariant(info->rawData, info->dataVersion, this);
         if (copy) {
             changed = true;
             mDataList.append(copy);
         }
     }
+    if (changed)
+        emit dataChanged();
+}
+
+void MusicFetcher::loadFromDownloader()
+{
+    reset();
+    bool changed = false;
+    QList<MusicDownloadItem*> list = MusicDownloader::Instance()->getAllRecords();
+    foreach (MusicDownloadItem* item, list) {
+        MusicInfo* info = MusicInfo::fromVariant(item->rawData, -1, this);
+        if (info) {
+            changed = true;
+            mDataList.append(info);
+        }
+    }
+    qDeleteAll(list);
     if (changed)
         emit dataChanged();
 }
@@ -396,7 +478,8 @@ void MusicFetcher::requestFinished()
 
     QString query = mCurrentReply->property(RequestOptionQuery).toString();
     if (query == OptionQueryPlayList) {
-        list = mRawData.value("result").toMap().value("tracks").toList();
+        list = mRawData.value("playlist").toMap().value("tracks").toList();
+        dataVer = 1;
     }
     else if (query == OptionQueryDJDetail) {
         list << mRawData.value("program").toMap().value("mainSong");
@@ -406,7 +489,7 @@ void MusicFetcher::requestFinished()
     }
 
     foreach (const QVariant& item, list) {
-        MusicInfo* data = createDataFromMap(item, dataVer);
+        MusicInfo* data = MusicInfo::fromVariant(item, dataVer, this);
         if (data) {
             changed = true;
             mDataList.append(data);
@@ -417,55 +500,4 @@ void MusicFetcher::requestFinished()
         emit dataChanged();
 
     emit loadingChanged();
-}
-
-MusicInfo* MusicFetcher::createDataFromMap(const QVariant &data, int ver)
-{
-    if (data.isNull() || !data.canConvert(QVariant::Map))
-        return 0;
-
-    MusicInfo* result = new MusicInfo(this);
-    const QVariantMap& map = data.toMap();
-
-    result->rawData = data;
-    result->dataVersion = ver;
-
-    if (ver == 0) {
-        result->starred = map.value("starred").toBool();
-        result->name = map.value("name").toString();
-        result->id = map.value("id").toInt();
-        result->duration = map.value("duration").toInt();
-        result->commentThreadId = map.value("commentThreadId").toString();
-
-        result->lMusic = MusicData::fromVariant(map.value("lMusic"));
-        result->mMusic = MusicData::fromVariant(map.value("mMusic"));
-        result->hMusic = MusicData::fromVariant(map.value("hMusic"));
-
-        result->album = AlbumData::fromVariant(map.value("album"));
-
-        foreach (const QVariant& artistData, map.value("artists").toList()) {
-            ArtistData* artist = ArtistData::fromVariant(artistData);
-            if (artist) result->artists.append(artist);
-        }
-    }
-    else {
-        result->starred = false; // TODO: load from local database
-        result->name = map.value("name").toString();
-        result->id = map.value("id").toInt();
-        result->duration = map.value("dt").toInt();
-        result->commentThreadId = QString("R_SO_4_%1").arg(result->id);
-
-        result->lMusic = MusicData::fromVariant(map.value("l"), ver);
-        result->mMusic = MusicData::fromVariant(map.value("m"), ver);
-        result->hMusic = MusicData::fromVariant(map.value("h"), ver);
-
-        result->album = AlbumData::fromVariant(map.value("al"), ver);
-
-        foreach (const QVariant& ar, map.value("ar").toList()) {
-            ArtistData* artist = ArtistData::fromVariant(ar);
-            if (artist) result->artists.append(artist);
-        }
-    }
-
-    return result;
 }

@@ -44,14 +44,36 @@ Page {
         }
 
         ToolButton {
-            iconSource: "toolbar-settings"
-            onClicked: infoBanner.showDevelopingMsg()
+            iconSource: "toolbar-menu"
+            onClicked: mainMenu.open()
         }
     }
 
     Connections {
         target: user
         onUserChanged: getHotSpotList()
+    }
+
+    Menu {
+        id: mainMenu
+        MenuLayout {
+            MenuItem {
+                text: "下载管理"
+                onClicked: pageStack.push(Qt.resolvedUrl("DownloadPage.qml"))
+            }
+            MenuItem {
+                text: "一般设定"
+                onClicked: infoBanner.showDevelopingMsg()
+            }
+            MenuItem {
+                text: "关于"
+                onClicked: pageStack.push(Qt.resolvedUrl("AboutPage.qml"))
+            }
+        }
+        onStatusChanged: {
+            if (status == DialogStatus.Closed)
+                app.focus = true
+        }
     }
 
     Flickable {

@@ -65,7 +65,6 @@ public:
     ~MusicInfo();
 
     Q_INVOKABLE QString getUrl(Quality quality) const;
-    Q_INVOKABLE int fileSize(Quality quality) const;
 
     QString musicId() const;
     QString musicName() const;
@@ -76,14 +75,20 @@ public:
     QString albumImageUrl() const;
     QString artistsDisplayName() const;
 
+    MusicData* getMusicData(Quality quality) const;
+    int fileSize(Quality quality) const;
+    QString extension(Quality quality) const;
+    QVariant getRawData() const;
+
     static QString getMusicUrl(const QByteArray& id, const QString& ext = "mp3");
     static QString getPictureUrl(const QByteArray& id);
+    static MusicInfo* fromVariant(const QVariant& data, int ver = 0, QObject* parent = 0);
 
 private:
     QVariant rawData;
     int dataVersion;
 
-    int id;
+    QString id;
     int duration;
     bool starred;
     QString name;
@@ -119,6 +124,7 @@ public:
     Q_INVOKABLE void loadDJDetail(const int &djId);
 
     Q_INVOKABLE void loadFromFetcher(MusicFetcher* other = 0);
+    Q_INVOKABLE void loadFromDownloader();
 
     Q_INVOKABLE MusicInfo* dataAt(const int& index) const;
 
@@ -136,9 +142,6 @@ signals:
 
 private slots:
     void requestFinished();
-
-private:
-    MusicInfo* createDataFromMap(const QVariant& data, int ver = 0);
 
 private:
     QVariantMap mRawData;

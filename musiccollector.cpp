@@ -168,16 +168,19 @@ void MusicCollector::loadList()
 
 void MusicCollector::loadFromFetcher(MusicFetcher *fetcher)
 {
-    if (currentReply && currentReply->isRunning())
-        currentReply->abort();
+    if (currentReply) {
+        if (currentReply->isRunning())
+            currentReply->abort();
 
-    currentReply = 0;
+        currentReply = 0;
+        emit loadingChanged();
+    }
 
     idList.clear();
     for (int i = 0; i < fetcher->count(); i++)
         idList.append(fetcher->dataAt(i)->musicId().toInt());
 
-    emit loadingChanged();
+    emit dataChanged();
 }
 
 bool MusicCollector::loading() const

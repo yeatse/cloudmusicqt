@@ -80,6 +80,20 @@ PageStackWindow {
             if (commandId == 1) {
                 player.bringToFront()
             }
+            else if (commandId == 2) {
+                if (pageStack.currentPage == null
+                        || pageStack.currentPage.objectName != player.callerTypeDownload)
+                    pageStack.push(Qt.resolvedUrl("DownloadPage.qml"))
+            }
+        }
+    }
+
+    Connections {
+        target: downloader
+        onDownloadCompleted: {
+            var msg = success ? "下载完成:" : "下载失败:"
+            msg += musicName
+            qmlApi.showNotification("网易云音乐", msg, 2)
         }
     }
 
@@ -93,7 +107,7 @@ PageStackWindow {
 
     VolumeIndicator {
         id: volumeIndicator
-        volume: Math.min(deviceInfo.voiceRingtoneVolume, 50)
+        volume: Math.min(deviceInfo.voiceRingtoneVolume, 30)
     }
 
     InfoBanner {

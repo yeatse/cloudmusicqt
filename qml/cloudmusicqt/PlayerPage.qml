@@ -16,9 +16,11 @@ Page {
 
     property string callerTypePrivateFM: "PrivateFM"
     property string callerTypeDJ: "DJ"
+    property string callerTypeDownload: "DownloadPage"
 
     property bool isMusicCollected: false
     property bool isMusicCollecting: false
+    property bool isMusicDownloaded: false
 
     function playPrivateFM() {
         bringToFront()
@@ -73,6 +75,19 @@ Page {
         else {
             bringToFront()
         }
+    }
+
+    function playDownloader(index) {
+        callerType = callerTypeDownload
+        callerParam = null
+
+        musicFetcher.disconnect()
+        musicFetcher.loadFromDownloader()
+
+        if (audio.status == Audio.Loading)
+            audio.waitingIndex = index
+        else
+            audio.setCurrentMusic(index)
     }
 
     function bringToFront() {
@@ -173,7 +188,18 @@ Page {
             if (index >= 0 && index < musicFetcher.count) {
                 currentMusic = musicFetcher.dataAt(index)
                 currentIndex = index
-                audio.source = currentMusic.getUrl(MusicInfo.LowQuality)
+
+                var loc = downloader.getCompletedFile(currentMusic.musicId)
+                if (qmlApi.isFileExists(loc)) {
+                    audio.source = "file:///" + loc
+                }
+                else if (callerType == callerTypeDownload) {
+                    playNextMusic()
+                    return
+                }
+                else {
+                    audio.source = currentMusic.getUrl(MusicInfo.LowQuality)
+                }
                 audio.play()
 
                 isMusicCollecting = false
@@ -182,7 +208,9 @@ Page {
                 else
                     isMusicCollected = collector.isCollected(currentMusic.musicId)
 
-                if (app.pageStack.currentPage != page) {
+                isMusicDownloaded = downloader.containsRecord(currentMusic.musicId)
+
+                if (app.pageStack.currentPage != page || !Qt.application.active) {
                     qmlApi.showNotification("网易云音乐",
                                             "正在播放: %1 - %2".arg(currentMusic.artistsDisplayName).arg(currentMusic.musicName),
                                             1)
@@ -208,7 +236,7 @@ Page {
             else {
                 if (currentIndex < musicFetcher.count - 1)
                     setCurrentMusic(currentIndex + 1)
-                else
+                else if (callerType != callerTypeDownload)
                     setCurrentMusic(0)
             }
         }
@@ -455,7 +483,20 @@ Page {
         id: menu
         MenuLayout {
             MenuItem {
-                visible: callerType != "" && callerType != callerTypeDJ && callerType != callerTypePrivateFM
+                enabled: currentMusic != null
+                text: currentMusic == null || !isMusicDownloaded ? "下载" : "查看下载"
+                onClicked: {
+                    if (isMusicDownloaded) {
+                        pageStack.push(Qt.resolvedUrl("DownloadPage.qml"))
+                    }
+                    else {
+                        downloader.addTask(currentMusic)
+                        isMusicDownloaded = true
+                    }
+                }
+            }
+            MenuItem {
+                enabled: callerType != "" && callerType != callerTypeDJ && callerType != callerTypePrivateFM
                 text: "播放列表"
                 onClicked: pageStack.push(Qt.resolvedUrl(callerType + ".qml"), callerParam)
             }

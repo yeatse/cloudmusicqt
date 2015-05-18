@@ -35,6 +35,10 @@ public:
 
     Q_INVOKABLE bool compareVariant(const QVariant& left, const QVariant& right);
 
+    Q_INVOKABLE QString getNetEaseImageUrl(const QString& imgId);
+
+    Q_INVOKABLE bool isFileExists(const QString& fileName);
+
 #ifdef Q_OS_SYMBIAN
     void ProcessCommandL(TInt aCommandId);
 #endif
