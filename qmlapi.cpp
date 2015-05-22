@@ -132,6 +132,11 @@ bool QmlApi::isFileExists(const QString &fileName)
     return QFile::exists(fileName);
 }
 
+QString QmlApi::processContent(const QString &content)
+{
+    return content;
+}
+
 #ifdef Q_OS_SYMBIAN
 void QmlApi::ProcessCommandL(TInt aCommandId)
 {

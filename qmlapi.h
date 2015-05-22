@@ -39,6 +39,8 @@ public:
 
     Q_INVOKABLE bool isFileExists(const QString& fileName);
 
+    Q_INVOKABLE QString processContent(const QString& content);
+
 #ifdef Q_OS_SYMBIAN
     void ProcessCommandL(TInt aCommandId);
 #endif

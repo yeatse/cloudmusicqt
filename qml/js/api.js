@@ -13,7 +13,9 @@ var CloudMusicApi = {
     USER_PLAYLIST: "http://music.163.com/api/user/playlist/",
 
     RADIO_LIKE: "http://music.163.com/api/radio/like",
-    RADIO_TRASH_ADD: "http://music.163.com/api/radio/trash/add"
+    RADIO_TRASH_ADD: "http://music.163.com/api/radio/trash/add",
+
+    RESOURCE_COMMENTS: "http://music.163.com/api/v1/resource/comments/"
 };
 
 var ApiRequest = function(url, method) {
@@ -110,9 +112,9 @@ function collectRadioMusic(option, onSuccess, onFailure) {
     var query = {
         alg: "itembased",
         trackId: option.id,
-        like: option.like ? "true" : "false",
+        like: option.like,
         time: option.sec
-    }
+    };
     req.setQuery(query);
     req.sendRequest(onSuccess, onFailure);
 }
@@ -123,7 +125,19 @@ function addRadioMusicToTrash(option, onSuccess, onFailure) {
         alg: "itembased",
         songId: option.id,
         time: option.sec
-    }
+    };
+    req.setQuery(query);
+    req.sendRequest(onSuccess, onFailure);
+}
+
+function getCommentList(option, onSuccess, onFailure) {
+    var req = new ApiRequest(CloudMusicApi.RESOURCE_COMMENTS + option.rid);
+    var query = {
+        rid: option.rid,
+        offset: option.offset,
+        total: option.total,
+        limit: 20
+    };
     req.setQuery(query);
     req.sendRequest(onSuccess, onFailure);
 }
