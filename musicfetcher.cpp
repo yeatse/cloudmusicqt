@@ -133,6 +133,11 @@ bool MusicInfo::isStarred() const
     return starred;
 }
 
+QString MusicInfo::commentId() const
+{
+    return commentThreadId;
+}
+
 QString MusicInfo::albumName() const
 {
     return album ? album->name : "";

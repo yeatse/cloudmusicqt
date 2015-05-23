@@ -502,7 +502,8 @@ Page {
             }
             MenuItem {
                 text: "评论"
-                onClicked: infoBanner.showDevelopingMsg()
+                enabled: currentMusic != null
+                onClicked: pageStack.push(Qt.resolvedUrl("CommentPage.qml"), {commentId: currentMusic.commentId})
             }
         }
         onStatusChanged: {
