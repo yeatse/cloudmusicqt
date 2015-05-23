@@ -492,6 +492,7 @@ Page {
                     else {
                         downloader.addTask(currentMusic)
                         isMusicDownloaded = true
+                        infoBanner.showMessage("已添加到下载列表")
                     }
                 }
             }
@@ -503,7 +504,16 @@ Page {
             MenuItem {
                 text: "评论"
                 enabled: currentMusic != null
-                onClicked: pageStack.push(Qt.resolvedUrl("CommentPage.qml"), {commentId: currentMusic.commentId})
+                onClicked: {
+                    var rid
+                    if (callerType == callerTypeDJ) {
+                        rid = musicFetcher.getRawData().program.commentThreadId
+                    }
+                    else {
+                        rid = currentMusic.commentId
+                    }
+                    pageStack.push(Qt.resolvedUrl("CommentPage.qml"), {commentId: rid})
+                }
             }
         }
         onStatusChanged: {

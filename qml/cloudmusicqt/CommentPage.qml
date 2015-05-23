@@ -40,7 +40,7 @@ Page {
             loading = false
             hasMore = resp.more
             totalCount = resp.total
-            offset = resp.comments.length
+            offset = opt.offset + resp.comments.length
 
             if (option == "refresh")
                 listModel.clear()
@@ -81,11 +81,15 @@ Page {
     tools: ToolBarLayout {
         ToolButton {
             iconSource: "toolbar-back"
+            onClicked: pageStack.pop()
         }
     }
 
     ListView {
         id: view
+
+        property Item footerItem: null
+
         anchors.fill: parent
         model: ListModel { id: listModel }
         header: ViewHeader {
@@ -114,7 +118,7 @@ Page {
                 width: platformStyle.graphicSizeMedium
                 height: platformStyle.graphicSizeMedium
                 sourceSize { width: width; height: height }
-                source: avatar
+                source: Api.getScaledImageUrl(avatar, 80)
             }
 
             Column {
@@ -139,9 +143,9 @@ Page {
                         Rectangle {
                             width: contentCol.width
                             height: refLabel.height + platformStyle.paddingLarge * 2
-                            color: "#601f1f1f"
+                            color: "#801f1f1f"
                             border.width: 1
-                            border.color: "#60ffffff"
+                            border.color: "#80ffffff"
                             Label {
                                 id: refLabel
                                 anchors {
@@ -161,5 +165,34 @@ Page {
                 }
             }
         }
+        footer: Item {
+            id: footerItem
+            width: ListView.view.width
+            height: visible ? platformStyle.graphicSizeLarge : 0
+            visible: page.hasMore && listModel.count > 0
+            BusyIndicator {
+                anchors.centerIn: parent
+                running: !view.moving && page.loading
+            }
+            Component.onCompleted: view.footerItem = footerItem
+        }
+
+        onMovementEnded: {
+            if (footerItem != null && !page.loading && page.hasMore &&
+                    footerItem.mapToItem(view, 0, 0).y < view.height)
+            {
+                page.loadCommentList("next")
+            }
+        }
+    }
+
+    ScrollDecorator { flickableItem: view }
+
+    BusyIndicator {
+        width: platformStyle.graphicSizeLarge
+        height: platformStyle.graphicSizeLarge
+        anchors.centerIn: parent
+        visible: page.loading && listModel.count == 0
+        running: visible
     }
 }
