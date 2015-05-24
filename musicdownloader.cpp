@@ -189,6 +189,15 @@ void MusicDownloadTask::downloadFinished()
         return;
     }
 
+    QUrl redirectUrl = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
+    if (!redirectUrl.isEmpty()) {
+        task->remoteUrl = reply->url().resolved(redirectUrl).toString();
+        output->deleteLater();
+        output = 0;
+        QTimer::singleShot(0, this, SLOT(start()));
+        return;
+    }
+
     QFile::remove(task->fileName);
     if (output->rename(task->fileName)) {
         task->status = MusicDownloadItem::Completed;

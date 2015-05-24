@@ -41,6 +41,8 @@ public:
 
     Q_INVOKABLE QString processContent(const QString& content);
 
+    Q_INVOKABLE QString selectFolder(const QString& title, const QString& defaultDir);
+
 #ifdef Q_OS_SYMBIAN
     void ProcessCommandL(TInt aCommandId);
 #endif

@@ -17,6 +17,7 @@ Page {
     property string callerTypePrivateFM: "PrivateFM"
     property string callerTypeDJ: "DJ"
     property string callerTypeDownload: "DownloadPage"
+    property string callerTypeSingle: "SingleMusic"
 
     property bool isMusicCollected: false
     property bool isMusicCollecting: false
@@ -88,6 +89,19 @@ Page {
             audio.waitingIndex = index
         else
             audio.setCurrentMusic(index)
+    }
+
+    function playSingleMusic(musicInfo) {
+        callerType = callerTypeSingle
+        callerParam = null
+
+        musicFetcher.disconnect()
+        musicFetcher.loadFromMusicInfo(musicInfo)
+
+        if (audio.status == Audio.Loading)
+            audio.waitingIndex = index
+        else
+            audio.setCurrentMusic(0)
     }
 
     function bringToFront() {
@@ -409,8 +423,6 @@ Page {
                 onClicked: {
                     if (callerType == callerTypePrivateFM)
                         collectCurrentRadio(!isMusicCollected)
-                    else if (callerType == callerTypeDJ)
-                        infoBanner.showDevelopingMsg()
                     else if (isMusicCollected)
                         collector.removeCollection(currentMusic.musicId)
                     else
@@ -497,7 +509,10 @@ Page {
                 }
             }
             MenuItem {
-                enabled: callerType != "" && callerType != callerTypeDJ && callerType != callerTypePrivateFM
+                enabled: callerType != ""
+                         && callerType != callerTypeDJ
+                         && callerType != callerTypePrivateFM
+                         && callerType != callerTypeSingle
                 text: "播放列表"
                 onClicked: pageStack.push(Qt.resolvedUrl(callerType + ".qml"), callerParam)
             }

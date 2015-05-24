@@ -40,7 +40,7 @@ Page {
 
         ToolButton {
             iconSource: "toolbar-search"
-            onClicked: infoBanner.showDevelopingMsg()
+            onClicked: pageStack.push(Qt.resolvedUrl("SearchPage.qml"))
         }
 
         ToolButton {
@@ -63,7 +63,7 @@ Page {
             }
             MenuItem {
                 text: "一般设定"
-                onClicked: infoBanner.showDevelopingMsg()
+                onClicked: pageStack.push(Qt.resolvedUrl("SettingsPage.qml"))
             }
             MenuItem {
                 text: "关于"

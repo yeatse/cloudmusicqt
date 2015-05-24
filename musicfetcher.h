@@ -124,9 +124,11 @@ public:
     Q_INVOKABLE void loadRecommend(int offset = 0, bool total = true, int limit = 20);
     Q_INVOKABLE void loadPlayList(const int &listId);
     Q_INVOKABLE void loadDJDetail(const int &djId);
+    Q_INVOKABLE void searchSongs(const QString& text);
 
     Q_INVOKABLE void loadFromFetcher(MusicFetcher* other = 0);
     Q_INVOKABLE void loadFromDownloader();
+    Q_INVOKABLE void loadFromMusicInfo(MusicInfo* info = 0);
 
     Q_INVOKABLE MusicInfo* dataAt(const int& index) const;
 

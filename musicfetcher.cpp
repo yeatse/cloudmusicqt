@@ -19,6 +19,7 @@ static const char* RequestOptionReload = "reload";
 
 static const char* OptionQueryPlayList = "playlist";
 static const char* OptionQueryDJDetail = "djDetail";
+static const char* OptionQuerySearchSongs = "searchSongs";
 
 MusicData* MusicData::fromVariant(const QVariant &data, int ver)
 {
@@ -366,6 +367,37 @@ void MusicFetcher::loadDJDetail(const int &djId)
     emit loadingChanged();
 }
 
+void MusicFetcher::searchSongs(const QString &text)
+{
+    if (!isComponentComplete) return;
+
+    if (mCurrentReply && mCurrentReply->isRunning())
+        mCurrentReply->abort();
+
+    QNetworkRequest req;
+    req.setUrl(QString(ApiBaseUrl).append("/cloudsearch/pc"));
+    req.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+
+    QByteArray postData;
+    postData.append("hlpretag=").append(QByteArray("<span class=\"s-fc2\">").toPercentEncoding());
+    postData.append("&hlposttag=").append(QByteArray("</span>").toPercentEncoding());
+    postData.append("&s=").append(text.toUtf8().toPercentEncoding());
+    postData.append("&offset=0");
+    postData.append("&total=true");
+    postData.append("&limit=100");
+    postData.append("&track_searchsuggest=").append(QString("{\"s\":\"%1\"}").arg(text).toUtf8().toPercentEncoding());
+    postData.append("&type=1");
+
+    mCurrentReply = mNetworkAccessManager->post(req, postData);
+    mCurrentReply->setProperty(RequestOptionQuery, OptionQuerySearchSongs);
+    mCurrentReply->setProperty(RequestOptionReload, true);
+    connect(mCurrentReply, SIGNAL(finished()), SLOT(requestFinished()), Qt::QueuedConnection);
+
+    mRawData.clear();
+    mLastError = 0;
+    emit loadingChanged();
+}
+
 void MusicFetcher::loadFromFetcher(MusicFetcher *other)
 {
     if (!other || this == other) return;
@@ -400,6 +432,17 @@ void MusicFetcher::loadFromDownloader()
     qDeleteAll(list);
     if (changed)
         emit dataChanged();
+}
+
+void MusicFetcher::loadFromMusicInfo(MusicInfo *info)
+{
+    if (!info) return;
+    MusicInfo* copy = MusicInfo::fromVariant(info->rawData, info->dataVersion, this);
+    reset();
+    if (copy) {
+        mDataList.append(copy);
+        emit dataChanged();
+    }
 }
 
 MusicInfo* MusicFetcher::dataAt(const int &index) const
@@ -480,6 +523,7 @@ void MusicFetcher::requestFinished()
     bool changed = false;
     QVariantList list;
     int dataVer = 0;
+    bool checkDuplicate = false;
 
     QString query = mCurrentReply->property(RequestOptionQuery).toString();
     if (query == OptionQueryPlayList) {
@@ -489,6 +533,11 @@ void MusicFetcher::requestFinished()
     else if (query == OptionQueryDJDetail) {
         list << mRawData.value("program").toMap().value("mainSong");
     }
+    else if (query == OptionQuerySearchSongs) {
+        list = mRawData.value("result").toMap().value("songs").toList();
+        checkDuplicate = true;
+        dataVer = 1;
+    }
     else {
         list = mRawData.value(query).toList();
     }
@@ -496,6 +545,19 @@ void MusicFetcher::requestFinished()
     foreach (const QVariant& item, list) {
         MusicInfo* data = MusicInfo::fromVariant(item, dataVer, this);
         if (data) {
+            if (checkDuplicate) {
+                bool add = true;
+                foreach (MusicInfo* info, mDataList) {
+                    if (info->id == data->id) {
+                        add = false;
+                        break;
+                    }
+                }
+                if (!add) {
+                    delete data;
+                    continue;
+                }
+            }
             changed = true;
             mDataList.append(data);
         }

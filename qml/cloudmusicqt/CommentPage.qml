@@ -87,10 +87,9 @@ Page {
 
     ListView {
         id: view
-
         property Item footerItem: null
-
         anchors.fill: parent
+        cacheBuffer: 200
         model: ListModel { id: listModel }
         header: ViewHeader {
             title: "评论"
@@ -143,9 +142,9 @@ Page {
                         Rectangle {
                             width: contentCol.width
                             height: refLabel.height + platformStyle.paddingLarge * 2
-                            color: "#801f1f1f"
+                            color: "#803a3a3a"
                             border.width: 1
-                            border.color: "#80ffffff"
+                            border.color: "#801f1f1f"
                             Label {
                                 id: refLabel
                                 anchors {

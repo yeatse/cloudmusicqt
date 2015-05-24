@@ -5,6 +5,7 @@
 #include <QPixmap>
 #include <QDesktopServices>
 #include <QFile>
+#include <QFileDialog>
 #include <QDebug>
 
 #ifdef Q_OS_SYMBIAN
@@ -135,6 +136,11 @@ bool QmlApi::isFileExists(const QString &fileName)
 QString QmlApi::processContent(const QString &content)
 {
     return content;
+}
+
+QString QmlApi::selectFolder(const QString &title, const QString &defaultDir)
+{
+    return QFileDialog::getExistingDirectory(0, title, defaultDir);
 }
 
 #ifdef Q_OS_SYMBIAN
