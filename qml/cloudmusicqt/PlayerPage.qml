@@ -99,7 +99,7 @@ Page {
         musicFetcher.loadFromMusicInfo(musicInfo)
 
         if (audio.status == Audio.Loading)
-            audio.waitingIndex = index
+            audio.waitingIndex = 0
         else
             audio.setCurrentMusic(0)
     }
