@@ -1,5 +1,6 @@
 import QtQuick 1.1
 import com.nokia.symbian 1.1
+import com.nokia.extras 1.1
 
 Page {
     id: page
@@ -79,6 +80,42 @@ Page {
                             qmlApi.launchSettingApp()
                         }
                         Component.onCompleted: open()
+                        Component.onDestruction: app.forceActiveFocus()
+                        onStatusChanged: {
+                            if (status == DialogStatus.Closing)
+                                isClosing = true
+                            else if (status == DialogStatus.Closed && isClosing)
+                                diag.destroy()
+                        }
+                    }
+                }
+            }
+            SelectionListItem {
+                title: "定时关闭"
+                subTitle: cdTimer.active ? "程序将在%1分钟后关闭".arg(cdTimer.timeLeft)
+                                         : "未启动"
+                onClicked: cdDiagComp.createObject(page)
+                Component {
+                    id: cdDiagComp
+                    TimePickerDialog {
+                        id: diag
+                        property bool isClosing: false
+                        titleText: "设定程序关闭的时间"
+                        acceptButtonText: "启动"
+                        rejectButtonText: "关闭"
+                        Component.onCompleted: {
+                            cdTimer.active = false
+                            hour = Math.floor(cdTimer.timeLeft / 60)
+                            minute = cdTimer.timeLeft % 60
+                            open()
+                        }
+                        onAccepted: {
+                            var result = hour * 60 + minute
+                            if (result > 0) {
+                                cdTimer.timeLeft = result
+                                cdTimer.active = true
+                            }
+                        }
                         Component.onDestruction: app.forceActiveFocus()
                         onStatusChanged: {
                             if (status == DialogStatus.Closing)

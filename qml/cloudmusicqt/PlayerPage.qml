@@ -13,6 +13,7 @@ Page {
 
     property int currentIndex: -1
     property MusicInfo currentMusic: null
+    property url coverImageUrl: ""
 
     property string callerTypePrivateFM: "PrivateFM"
     property string callerTypeDJ: "DJ"
@@ -201,6 +202,7 @@ Page {
             waitingIndex = -1
             if (index >= 0 && index < musicFetcher.count) {
                 currentMusic = musicFetcher.dataAt(index)
+                coverImageUrl = Api.getScaledImageUrl(currentMusic.albumImageUrl, 640)
                 currentIndex = index
 
                 var loc = downloader.getCompletedFile(currentMusic.musicId)
@@ -333,7 +335,7 @@ Page {
             width: Math.min(screen.width, screen.height) - platformStyle.graphicSizeSmall * 2
             height: width
             fillMode: Image.PreserveAspectCrop
-            source: currentMusic ? Api.getScaledImageUrl(currentMusic.albumImageUrl, 640) : ""
+            source: coverImageUrl
         }
 
         Image {

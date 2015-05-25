@@ -69,6 +69,7 @@ PageStackWindow {
                     else if (status == DialogStatus.Closed && closing)
                         dialog.destroy()
                 }
+                Component.onDestruction: app.forceActiveFocus()
             }
         }
     }
@@ -105,6 +106,11 @@ PageStackWindow {
         id: deviceInfo
     }
 
+    CountDownTimer {
+        id: cdTimer
+        onTriggered: Qt.quit()
+    }
+
     VolumeIndicator {
         id: volumeIndicator
         volume: Math.min(deviceInfo.voiceRingtoneVolume, 30)
@@ -139,8 +145,7 @@ PageStackWindow {
             anchors.fill: parent
             asynchronous: true
             fillMode: Image.PreserveAspectCrop
-            source: player.currentMusic ? Api.getScaledImageUrl(player.currentMusic.albumImageUrl, 640)
-                                        : ""
+            source: player.coverImageUrl
             visible: false
         }
     }
