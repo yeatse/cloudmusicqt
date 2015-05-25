@@ -39,9 +39,12 @@ public:
 
     Q_INVOKABLE bool isFileExists(const QString& fileName);
 
-    Q_INVOKABLE QString processContent(const QString& content);
-
     Q_INVOKABLE QString selectFolder(const QString& title, const QString& defaultDir);
+
+    // For Symbian OS only
+    Q_INVOKABLE bool showAccessPointTip();
+    Q_INVOKABLE void clearAccessPointTip();
+    Q_INVOKABLE void launchSettingApp();
 
 #ifdef Q_OS_SYMBIAN
     void ProcessCommandL(TInt aCommandId);

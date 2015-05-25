@@ -48,14 +48,14 @@ Page {
             var parse = function(data, type) {
                 var prop = {
                     type: type,
-                    avatar: data.user.avatarUrl,
-                    content: data.user.nickname + ": " + qmlApi.processContent(data.content),
+                    avatar: Api.getScaledImageUrl(data.user.avatarUrl, 80),
+                    content: data.user.nickname + ": " + data.content,
                     time: Qt.formatDateTime(new Date(Number(data.time)), "yyyy-MM-dd hh:mm:ss"),
                     refContent: ""
                 }
                 if (data.beReplied.length > 0) {
                     prop.refContent = data.beReplied[0].user.nickname
-                            + ": " + qmlApi.processContent(data.beReplied[0].content)
+                            + ": " + data.beReplied[0].content
                 }
                 listModel.append(prop)
             }
@@ -117,7 +117,7 @@ Page {
                 width: platformStyle.graphicSizeMedium
                 height: platformStyle.graphicSizeMedium
                 sourceSize { width: width; height: height }
-                source: Api.getScaledImageUrl(avatar, 80)
+                source: avatar
             }
 
             Column {

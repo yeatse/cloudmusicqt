@@ -11,6 +11,8 @@
 #ifdef Q_OS_SYMBIAN
 #include <akndiscreetpopup.h>
 #include <avkon.hrh>
+#include <gslauncher.h>
+#include <gsfwviewuids.h>
 #endif
 
 #include "networkaccessmanagerfactory.h"
@@ -133,14 +135,28 @@ bool QmlApi::isFileExists(const QString &fileName)
     return QFile::exists(fileName);
 }
 
-QString QmlApi::processContent(const QString &content)
-{
-    return content;
-}
-
 QString QmlApi::selectFolder(const QString &title, const QString &defaultDir)
 {
     return QFileDialog::getExistingDirectory(0, title, defaultDir);
+}
+
+bool QmlApi::showAccessPointTip()
+{
+    return UserConfig::Instance()->getSetting(UserConfig::KeyShowAccessPointTip, true).toBool();
+}
+
+void QmlApi::clearAccessPointTip()
+{
+    UserConfig::Instance()->setSetting(UserConfig::KeyShowAccessPointTip, false);
+}
+
+void QmlApi::launchSettingApp()
+{
+#ifdef Q_OS_SYMBIAN
+    CGSLauncher* l = CGSLauncher::NewLC();
+    l->LaunchGSViewL ( KGSAppsPluginUid, TUid::Uid(0), KNullDesC8 );
+    CleanupStack::PopAndDestroy(l);
+#endif
 }
 
 #ifdef Q_OS_SYMBIAN

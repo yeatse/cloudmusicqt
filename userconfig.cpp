@@ -6,6 +6,7 @@ const char* UserConfig::KeyCookies = "cookies";
 const char* UserConfig::KeyUserId = "userId";
 const char* UserConfig::KeyDownloadQuality = "downloadQuality";
 const char* UserConfig::KeyDownloadDirectory = "downloadDirectory";
+const char* UserConfig::KeyShowAccessPointTip = "showAccessPointTip";
 
 UserConfig::UserConfig() : QObject(), settings(0)
 {

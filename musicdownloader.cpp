@@ -15,6 +15,7 @@
 #include "userconfig.h"
 
 static const int MaxSimultaneousTasks = 1;
+static const int MaxRedirectCount = 3;
 
 class MusicDownloadTask : public QObject
 {
@@ -44,12 +45,14 @@ private:
     QFile* output;
     QPointer<QNetworkReply> reply;
     int startPos;
+    int redirectCount;
 
     friend class MusicDownloader;
 };
 
 MusicDownloadTask::MusicDownloadTask(MusicDownloader *caller, MusicDownloadItem *task)
-    : QObject(0), caller(caller), task(task), manager(0), output(0), startPos(0)
+    : QObject(0), caller(caller), task(task), manager(0), output(0),
+      startPos(0), redirectCount(0)
 {
     QThread* thread = new QThread;
     thread->start(QThread::IdlePriority);
@@ -191,10 +194,19 @@ void MusicDownloadTask::downloadFinished()
 
     QUrl redirectUrl = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
     if (!redirectUrl.isEmpty()) {
-        task->remoteUrl = reply->url().resolved(redirectUrl).toString();
-        output->deleteLater();
-        output = 0;
-        QTimer::singleShot(0, this, SLOT(start()));
+        if (redirectCount++ > MaxRedirectCount) {
+            task->status = MusicDownloadItem::Failed;
+            task->errcode = MusicDownloadItem::NetworkError;
+            task->progress = 0;
+            output->remove();
+            emit finished();
+        }
+        else {
+            task->remoteUrl = reply->url().resolved(redirectUrl).toString();
+            output->deleteLater();
+            output = 0;
+            QTimer::singleShot(0, this, SLOT(start()));
+        }
         return;
     }
 

@@ -59,11 +59,12 @@ symbian {
         ReadUserData \
         WriteUserData \
         ReadDeviceData \
-        WriteDeviceData
+        WriteDeviceData \
+        SwEvent
 
     TARGET.EPOCHEAPSIZE = 0x40000 0x4000000
 
-    LIBS += -lavkon -leikcore
+    LIBS += -lavkon -leikcore -lgslauncher
 
     vendorinfo = "%{\"Yeatse\"}" ":\"Yeatse\""
     my_deployment.pkg_prerules += vendorinfo
