@@ -15,7 +15,10 @@ var CloudMusicApi = {
     RADIO_LIKE: "http://music.163.com/api/radio/like",
     RADIO_TRASH_ADD: "http://music.163.com/api/radio/trash/add",
 
-    RESOURCE_COMMENTS: "http://music.163.com/api/v1/resource/comments/"
+    RESOURCE_COMMENTS: "http://music.163.com/api/v1/resource/comments/",
+
+    PLAYLIST_SUBSCRIBE: "http://music.163.com/api/playlist/subscribe/",
+    PLAYLIST_UNSUBSCRIBE: "http://music.163.com/api/playlist/unsubscribe/"
 };
 
 var ApiRequest = function(url, method) {
@@ -138,6 +141,18 @@ function getCommentList(option, onSuccess, onFailure) {
         total: option.total,
         limit: 20
     };
+    req.setQuery(query);
+    req.sendRequest(onSuccess, onFailure);
+}
+
+function subscribePlaylist(option, onSuccess, onFailure) {
+    var req;
+    if (option.subscribe)
+        req = new ApiRequest(CloudMusicApi.PLAYLIST_SUBSCRIBE);
+    else
+        req = new ApiRequest(CloudMusicApi.PLAYLIST_UNSUBSCRIBE);
+
+    var query = { id: option.id };
     req.setQuery(query);
     req.sendRequest(onSuccess, onFailure);
 }

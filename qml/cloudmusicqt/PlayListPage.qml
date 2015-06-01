@@ -18,6 +18,11 @@ Page {
     property int commentCount
     property int shareCount
 
+    property bool subscribed: false
+    property bool subscribing: false
+
+    property string commentId
+
     orientationLock: PageOrientation.LockPortrait
 
     onStatusChanged: {
@@ -33,9 +38,39 @@ Page {
             onClicked: pageStack.pop()
         }
         ToolButton {
+            id: subscribeBtn
+            visible: false
+            enabled: !subscribing
+            iconSource: subscribed ? "gfx/btn_loved.svg" : "gfx/btn_love.svg"
+            onClicked: subscribePlaylist(!subscribed)
+        }
+        ToolButton {
+            iconSource: "gfx/instant_messenger_chat.svg"
+            enabled: commentId != ""
+            onClicked: pageStack.push(Qt.resolvedUrl("CommentPage.qml"), {commentId: commentId})
+        }
+        ToolButton {
             iconSource: "gfx/logo_icon.png"
             onClicked: player.bringToFront()
         }
+    }
+
+    function subscribePlaylist(on) {
+        if (subscribing) return
+        if (!user.loggedIn) {
+            pageStack.push(Qt.resolvedUrl("LoginPage.qml"))
+            return
+        }
+        var s = function(){
+            subscribed = on
+            subscribing = false
+        }
+        var f = function(err) {
+            console.log("subscribe playlist err:", err)
+            subscribing = false
+        }
+        subscribing = true
+        Api.subscribePlaylist({subscribe: on, id: listId}, s, f)
     }
 
     MusicFetcher {
@@ -78,6 +113,10 @@ Page {
             favoriteCount = ret.subscribedCount
             commentCount = ret.commentCount
             shareCount = ret.shareCount
+            subscribed = ret.subscribed
+            commentId = ret.commentThreadId
+
+            subscribeBtn.visible = user.loggedIn && ret.creator.userId != qmlApi.getUserId()
         }
     }
 
