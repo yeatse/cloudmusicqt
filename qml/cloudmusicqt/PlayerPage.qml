@@ -501,7 +501,8 @@ Page {
                 text: currentMusic == null || !isMusicDownloaded ? "下载" : "查看下载"
                 onClicked: {
                     if (isMusicDownloaded) {
-                        pageStack.push(Qt.resolvedUrl("DownloadPage.qml"))
+                        pageStack.push(Qt.resolvedUrl("DownloadPage.qml"),
+                                       { startId: currentMusic.musicId })
                     }
                     else {
                         downloader.addTask(currentMusic)
@@ -532,10 +533,6 @@ Page {
                     pageStack.push(Qt.resolvedUrl("CommentPage.qml"), {commentId: rid})
                 }
             }
-        }
-        onStatusChanged: {
-            if (status == DialogStatus.Closed)
-                app.focus = true
         }
     }
 }

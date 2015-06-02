@@ -70,10 +70,6 @@ Page {
                 onClicked: pageStack.push(Qt.resolvedUrl("AboutPage.qml"))
             }
         }
-        onStatusChanged: {
-            if (status == DialogStatus.Closed)
-                app.focus = true
-        }
     }
 
     Flickable {

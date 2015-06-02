@@ -69,7 +69,6 @@ PageStackWindow {
                     else if (status == DialogStatus.Closed && closing)
                         dialog.destroy()
                 }
-                Component.onDestruction: app.forceActiveFocus()
             }
         }
     }
@@ -95,6 +94,14 @@ PageStackWindow {
             var msg = success ? "下载完成:" : "下载失败:"
             msg += musicName
             qmlApi.showNotification("网易云音乐", msg, 2)
+        }
+    }
+
+    Connections {
+        target: platformPopupManager
+        onPopupStackDepthChanged: {
+            if (platformPopupManager.popupStackDepth == 0)
+                app.focus = true
         }
     }
 

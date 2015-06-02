@@ -5,6 +5,8 @@ import com.yeatse.cloudmusic 1.0
 Page {
     id: page
 
+    property string startId
+
     orientationLock: PageOrientation.LockPortrait
 
     objectName: player.callerTypeDownload
@@ -15,11 +17,6 @@ Page {
             onClicked: pageStack.pop()
         }
         ToolButton {
-            iconSource: "toolbar-mediacontrol-play"
-            enabled: listView.count > 0
-            onClicked: player.playDownloader(0)
-        }
-        ToolButton {
             iconSource: "gfx/logo_icon.png"
             onClicked: player.bringToFront()
         }
@@ -28,9 +25,28 @@ Page {
     ListView {
         id: listView
         anchors.fill: parent
-        model: MusicDownloadModel { id: dlModel }
+        model: MusicDownloadModel {
+            id: dlModel
+            onLoadFinished: {
+                if (startId != "") {
+                    var idx = getIndexByMusicId(startId)
+                    if (idx > 0) listView.positionViewAtIndex(idx, ListView.Beginning)
+                    startId = ""
+                }
+            }
+        }
         header: ViewHeader {
             title: "我的下载"
+            Button {
+                anchors {
+                    right: parent.right; verticalCenter: parent.verticalCenter
+                    rightMargin: platformStyle.paddingLarge
+                }
+                width: height
+                iconSource: privateStyle.toolBarIconPath("toolbar-mediacontrol-play")
+                enabled: listView.count > 0
+                onClicked: player.playDownloader(0)
+            }
         }
         delegate: MusicListItem {
             active: player.currentMusic != null && player.currentMusic.musicId == id
@@ -92,11 +108,6 @@ Page {
                 visible: contextMenu.mStatus == 4
                 onClicked: downloader.retry(contextMenu.musicId)
             }
-        }
-
-        onStatusChanged: {
-            if (status == DialogStatus.Closed)
-                app.focus = true
         }
     }
 

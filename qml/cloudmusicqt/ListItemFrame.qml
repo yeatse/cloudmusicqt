@@ -5,6 +5,7 @@ Item {
     id: root
 
     signal clicked
+    signal pressAndHold
 
     implicitWidth: screen.width
     implicitHeight: platformStyle.graphicSizeLarge
@@ -15,5 +16,6 @@ Item {
         onReleased: root.opacity = 1
         onCanceled: root.opacity = 1
         onClicked: root.clicked()
+        onPressAndHold: root.pressAndHold()
     }
 }

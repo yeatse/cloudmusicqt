@@ -80,7 +80,6 @@ Page {
                             qmlApi.launchSettingApp()
                         }
                         Component.onCompleted: open()
-                        Component.onDestruction: app.forceActiveFocus()
                         onStatusChanged: {
                             if (status == DialogStatus.Closing)
                                 isClosing = true
@@ -116,7 +115,6 @@ Page {
                                 cdTimer.active = true
                             }
                         }
-                        Component.onDestruction: app.forceActiveFocus()
                         onStatusChanged: {
                             if (status == DialogStatus.Closing)
                                 isClosing = true

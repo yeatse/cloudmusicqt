@@ -19,7 +19,6 @@ Page {
     property int shareCount
 
     property bool subscribed: false
-    property bool subscribing: false
 
     property string commentId
 
@@ -39,8 +38,7 @@ Page {
         }
         ToolButton {
             id: subscribeBtn
-            visible: false
-            enabled: !subscribing
+            enabled: false
             iconSource: subscribed ? "gfx/btn_loved.svg" : "gfx/btn_love.svg"
             onClicked: subscribePlaylist(!subscribed)
         }
@@ -56,20 +54,20 @@ Page {
     }
 
     function subscribePlaylist(on) {
-        if (subscribing) return
+        if (!subscribeBtn.enabled) return
         if (!user.loggedIn) {
             pageStack.push(Qt.resolvedUrl("LoginPage.qml"))
             return
         }
         var s = function(){
             subscribed = on
-            subscribing = false
+            subscribeBtn.enabled = true
         }
         var f = function(err) {
             console.log("subscribe playlist err:", err)
-            subscribing = false
+            subscribeBtn.enabled = true
         }
-        subscribing = true
+        subscribeBtn.enabled = false
         Api.subscribePlaylist({subscribe: on, id: listId}, s, f)
     }
 
@@ -115,8 +113,7 @@ Page {
             shareCount = ret.shareCount
             subscribed = ret.subscribed
             commentId = ret.commentThreadId
-
-            subscribeBtn.visible = user.loggedIn && ret.creator.userId != qmlApi.getUserId()
+            subscribeBtn.enabled = user.loggedIn && ret.creator.userId != qmlApi.getUserId()
         }
     }
 
@@ -196,6 +193,35 @@ Page {
             subTitle: desc
             active: player.currentMusic != null && player.currentMusic.musicId == musicId
             onClicked: player.playFetcher(fetcher.type, {listId: listId}, fetcher, index)
+            onPressAndHold: contextMenu.init(index)
+        }
+    }
+
+    ContextMenu {
+        id: contextMenu
+        property int index
+        property bool downloaded
+        function init(idx) {
+            index = idx
+            downloaded = downloader.containsRecord(fetcher.dataAt(index).musicId)
+            open()
+        }
+        MenuLayout {
+            MenuItem {
+                text: contextMenu.downloaded ? "查看下载" : "下载"
+                onClicked: {
+                    var data = fetcher.dataAt(contextMenu.index)
+                    if (data) {
+                        if (contextMenu.downloaded) {
+                            pageStack.push(Qt.resolvedUrl("DownloadPage.qml"), { startId: data.musicId })
+                        }
+                        else {
+                            downloader.addTask(data)
+                            infoBanner.showMessage("已添加到下载列表")
+                        }
+                    }
+                }
+            }
         }
     }
 

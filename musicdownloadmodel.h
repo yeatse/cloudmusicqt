@@ -26,8 +26,13 @@ public:
     int rowCount(const QModelIndex &parent) const;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
 
+    Q_INVOKABLE int getIndexByMusicId(const QString& musicId) const;
+
 public slots:
     void refresh(MusicDownloadItem* item = 0);
+
+signals:
+    void loadFinished();
 
 private:
     QList<MusicDownloadItem*> mDataList;

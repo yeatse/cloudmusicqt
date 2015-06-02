@@ -2,6 +2,7 @@
 
 #include "musicdownloader.h"
 #include <QFile>
+#include <QTimer>
 
 MusicDownloadModel::MusicDownloadModel(QObject *parent) :
     QAbstractListModel(parent)
@@ -60,6 +61,15 @@ QVariant MusicDownloadModel::data(const QModelIndex &index, int role) const
     }
 }
 
+int MusicDownloadModel::getIndexByMusicId(const QString &musicId) const
+{
+    for (int i = 0; i < mDataList.size(); i++) {
+        if (mDataList.at(i)->id == musicId)
+            return i;
+    }
+    return -1;
+}
+
 void MusicDownloadModel::refresh(MusicDownloadItem *item)
 {
     if (item) {
@@ -80,4 +90,6 @@ void MusicDownloadModel::refresh(MusicDownloadItem *item)
     qDeleteAll(mDataList);
     mDataList = MusicDownloader::Instance()->getAllRecords();
     endResetModel();
+
+    QTimer::singleShot(0, this, SIGNAL(loadFinished()));
 }
