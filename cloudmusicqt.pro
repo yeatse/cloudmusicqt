@@ -19,7 +19,8 @@ HEADERS += \
     musiccollector.h \
     musicdownloader.h \
     musicdownloaddatabase.h \
-    musicdownloadmodel.h
+    musicdownloadmodel.h \
+    lyricloader.h
 
 SOURCES += main.cpp \
     qmlapi.cpp \
@@ -30,7 +31,8 @@ SOURCES += main.cpp \
     musiccollector.cpp \
     musicdownloader.cpp \
     musicdownloaddatabase.cpp \
-    musicdownloadmodel.cpp
+    musicdownloadmodel.cpp \
+    lyricloader.cpp
 
 include(qjson/qjson.pri)
 DEFINES += QJSON_MAKEDLL
