@@ -2,6 +2,7 @@
 
 #include <QFile>
 #include <QStringList>
+#include <QTextStream>
 
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
@@ -34,19 +35,39 @@ void LyricLoader::componentComplete()
 
 bool LyricLoader::loadFromFile(const QString &fileName)
 {
+    reset();
     QFile file(fileName);
-    return file.size() && file.open(QIODevice::ReadOnly) && processContent(file.readAll());
+    if (file.size() && file.open(QIODevice::ReadOnly)) {
+        QTextStream stream(&file);
+        return processContent(stream.readAll());
+    }
+    return false;
 }
 
 void LyricLoader::loadFromMusicId(const QString &musicId)
 {
     reset();
+}
 
+void LyricLoader::saveToFile(const QString &fileName)
+{
+    if (lrcLines.isEmpty() || rawData.isEmpty())
+        return;
+
+    QFile file(fileName);
+    if (file.exists() && !file.remove())
+        return;
+
+    if (!file.open(QIODevice::WriteOnly))
+        return;
+
+    QTextStream stream(&file);
+    stream << rawData;
 }
 
 QStringList LyricLoader::lyric() const
 {
-
+    return lrcLines;
 }
 
 bool LyricLoader::loading() const
@@ -56,18 +77,51 @@ bool LyricLoader::loading() const
 
 int LyricLoader::lineIndex() const
 {
-
+    return currentIndex;
 }
 
 void LyricLoader::reset()
 {
+    if (reply && reply->isRunning()) {
+        reply->abort();
+        reply = 0;
+        emit loadingChanged();
+    }
+    else {
+        reply = 0;
+    }
+
     rawData.clear();
-    lrcLines.clear();
-    currentIndex = -1;
+    if (lrcLines.size()) {
+        lrcLines.clear();
+        emit lyricChanged();
+    }
+
+    if (currentIndex != -1) {
+        currentIndex = -1;
+        emit lineIndexChanged();
+    }
 }
 
-void LyricLoader::processContent(const QString &content)
+bool LyricLoader::processContent(const QString &content)
 {
-    reset();
-    rawData = content;
+}
+
+void LyricLoader::requestFinished()
+{
+    sender()->deleteLater();
+    if (reply != sender())
+        return;
+
+    emit loadingChanged();
+
+    if (reply->error() == QNetworkReply::NoError) {
+        QVariantMap resp = parser->parse(reply->readAll()).toMap();
+        if (resp.value("code", -1).toInt() == 200) {
+            QString lrc = resp.value("lrc").toMap().value("lyric").toString();
+            if (processContent(lrc)) {
+                emit lyricChanged();
+            }
+        }
+    }
 }

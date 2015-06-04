@@ -26,6 +26,7 @@ public:
 
     Q_INVOKABLE bool loadFromFile(const QString& fileName);
     Q_INVOKABLE void loadFromMusicId(const QString& musicId);
+    Q_INVOKABLE void saveToFile(const QString& fileName);
 
     QStringList lyric() const;
     bool loading() const;
