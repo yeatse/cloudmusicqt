@@ -95,6 +95,16 @@ bool MusicDownloadDatabase::containsRecord(const QString &musicId)
     return query.exec() && query.first() && query.value(0).toInt() > 0;
 }
 
+bool MusicDownloadDatabase::hasRunningRecord()
+{
+    QString q("SELECT COUNT(1) FROM %1 WHERE status = %2 OR status = %3");
+    QSqlQuery query(q.arg(TABLE_NAME,
+                          QString::number(MusicDownloadItem::Pending),
+                          QString::number(MusicDownloadItem::Running)),
+                    *db);
+    return query.exec() && query.first() && query.value(0).toInt() > 0;
+}
+
 bool MusicDownloadDatabase::addRecord(MusicDownloadItem *record)
 {
     QString q("INSERT OR REPLACE INTO %1"
@@ -206,10 +216,28 @@ QList<MusicDownloadItem*> MusicDownloadDatabase::getAllRecords()
     return buildListFromQuery(query);
 }
 
-QList<MusicDownloadItem*> MusicDownloadDatabase::getAllPendingRecords()
+QList<MusicDownloadItem*> MusicDownloadDatabase::getPendingRecords()
 {
     QString q("SELECT * FROM %1 WHERE status = %2");
     QSqlQuery query(q.arg(TABLE_NAME, QString::number(MusicDownloadItem::Pending)),
+                    *db);
+    return buildListFromQuery(query);
+}
+
+QList<MusicDownloadItem*> MusicDownloadDatabase::getCompletedRecords(bool completed)
+{
+    QString q("SELECT * FROM %1 WHERE status %2 %3 ORDER BY addtime DESC");
+    QSqlQuery query(q.arg(TABLE_NAME,
+                          completed ? "=" : "!=",
+                          QString::number(MusicDownloadItem::Completed)),
+                    *db);
+    return buildListFromQuery(query);
+}
+
+QList<MusicDownloadItem*> MusicDownloadDatabase::getFailedRecords()
+{
+    QString q("SELECT * FROM %1 WHERE status = %2");
+    QSqlQuery query(q.arg(TABLE_NAME, QString::number(MusicDownloadItem::Failed)),
                     *db);
     return buildListFromQuery(query);
 }

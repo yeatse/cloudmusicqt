@@ -6,6 +6,9 @@ Page {
     id: page
 
     property string startId
+    property int defaultTab: MusicDownloadModel.ProcessingData
+    onDefaultTabChanged: buttonRow.checkedButton = defaultTab == MusicDownloadModel.ProcessingData
+                         ? toolButton1 : toolButton2
 
     orientationLock: PageOrientation.LockPortrait
 
@@ -15,6 +18,19 @@ Page {
         ToolButton {
             iconSource: "toolbar-back"
             onClicked: pageStack.pop()
+        }
+        ButtonRow {
+            id: buttonRow
+            ToolButton {
+                id: toolButton1
+                iconSource: "gfx/download.svg"
+                onClicked: dlModel.dataType = MusicDownloadModel.ProcessingData
+            }
+            ToolButton {
+                id: toolButton2
+                iconSource: "gfx/ok.svg"
+                onClicked: dlModel.dataType = MusicDownloadModel.CompletedData
+            }
         }
         ToolButton {
             iconSource: "gfx/logo_icon.png"
@@ -27,8 +43,9 @@ Page {
         anchors.fill: parent
         model: MusicDownloadModel {
             id: dlModel
+            dataType: page.defaultTab
             onLoadFinished: {
-                if (startId != "") {
+                if (dataType == page.defaultTab && startId != "") {
                     var idx = getIndexByMusicId(startId)
                     if (idx > 0) listView.positionViewAtIndex(idx, ListView.Beginning)
                     startId = ""
@@ -38,6 +55,7 @@ Page {
         header: ViewHeader {
             title: "我的下载"
             Button {
+                id: ctrlBtn
                 anchors {
                     right: parent.right; verticalCenter: parent.verticalCenter
                     rightMargin: platformStyle.paddingLarge
@@ -45,7 +63,41 @@ Page {
                 width: height
                 iconSource: privateStyle.toolBarIconPath("toolbar-mediacontrol-play")
                 enabled: listView.count > 0
-                onClicked: player.playDownloader(0)
+                onClicked: player.playDownloader(dlModel, "")
+                states: [
+                    State {
+                        name: "CanPause"
+                        PropertyChanges {
+                            target: ctrlBtn
+                            iconSource: privateStyle.toolBarIconPath("toolbar-mediacontrol-pause")
+                            onClicked: downloader.pause()
+                        }
+                    },
+                    State {
+                        name: "CanRestart"
+                        PropertyChanges {
+                            target: ctrlBtn
+                            iconSource: privateStyle.toolBarIconPath("toolbar-refresh")
+                            onClicked: {
+                                downloader.resume()
+                                downloader.retry()
+                            }
+                        }
+                    }
+                ]
+                function reset() {
+                    if (dlModel.dataType == MusicDownloadModel.CompletedData)
+                        state = ""
+                    else if (downloader.hasRunningTask())
+                        state = "CanPause"
+                    else
+                        state = "CanRestart"
+                }
+                Connections {
+                    target: dlModel
+                    onDataTypeChanged: ctrlBtn.reset()
+                    onLoadFinished: ctrlBtn.reset()
+                }
             }
         }
         delegate: MusicListItem {
@@ -91,7 +143,7 @@ Page {
             MenuItem {
                 text: "播放"
                 visible: contextMenu.mStatus == 3
-                onClicked: player.playDownloader(contextMenu.mIndex)
+                onClicked: player.playDownloader(dlModel, contextMenu.musicId)
             }
             MenuItem {
                 text: "删除"

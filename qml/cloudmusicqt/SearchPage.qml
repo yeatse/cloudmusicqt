@@ -97,32 +97,9 @@ Page {
         }
     }
 
-    ContextMenu {
+    PlayListMenu {
         id: contextMenu
-        property int index
-        property bool downloaded
-        function init(idx) {
-            index = idx
-            downloaded = downloader.containsRecord(fetcher.dataAt(index).musicId)
-            open()
-        }
-        MenuLayout {
-            MenuItem {
-                text: contextMenu.downloaded ? "查看下载" : "下载"
-                onClicked: {
-                    var data = fetcher.dataAt(contextMenu.index)
-                    if (data) {
-                        if (contextMenu.downloaded) {
-                            pageStack.push(Qt.resolvedUrl("DownloadPage.qml"), { startId: data.musicId })
-                        }
-                        else {
-                            downloader.addTask(data)
-                            infoBanner.showMessage("已添加到下载列表")
-                        }
-                    }
-                }
-            }
-        }
+        fetcher: fetcher
     }
 
     ScrollDecorator { flickableItem: view }

@@ -5,7 +5,7 @@
 #include <QTimer>
 
 MusicDownloadModel::MusicDownloadModel(QObject *parent) :
-    QAbstractListModel(parent)
+    QAbstractListModel(parent), mDataType(ProcessingData)
 {
     QHash<int, QByteArray> names;
     names[IdRole] = "id";
@@ -25,6 +25,20 @@ MusicDownloadModel::MusicDownloadModel(QObject *parent) :
 MusicDownloadModel::~MusicDownloadModel()
 {
     qDeleteAll(mDataList);
+}
+
+MusicDownloadModel::DataType MusicDownloadModel::dataType() const
+{
+    return mDataType;
+}
+
+void MusicDownloadModel::setDataType(const DataType &type)
+{
+    if (mDataType != type) {
+        mDataType = type;
+        emit dataTypeChanged();
+        refresh();
+    }
 }
 
 int MusicDownloadModel::rowCount(const QModelIndex &parent) const
@@ -70,6 +84,26 @@ int MusicDownloadModel::getIndexByMusicId(const QString &musicId) const
     return -1;
 }
 
+QList<MusicDownloadItem*> MusicDownloadModel::getDataList() const
+{
+    QList<MusicDownloadItem*> list;
+    foreach (MusicDownloadItem* item, mDataList) {
+        MusicDownloadItem* copy = new MusicDownloadItem;
+        copy->id = item->id;
+        copy->name = item->name;
+        copy->artist = item->artist;
+        copy->status = item->status;
+        copy->progress = item->progress;
+        copy->size = item->size;
+        copy->remoteUrl = item->remoteUrl;
+        copy->fileName = item->fileName;
+        copy->errcode = item->errcode;
+        copy->rawData = item->rawData;
+        list.append(copy);
+    }
+    return list;
+}
+
 void MusicDownloadModel::refresh(MusicDownloadItem *item)
 {
     if (item) {
@@ -84,11 +118,13 @@ void MusicDownloadModel::refresh(MusicDownloadItem *item)
                 return;
             }
         }
+        if (mDataType == CompletedData)
+            return;
     }
 
     beginResetModel();
     qDeleteAll(mDataList);
-    mDataList = MusicDownloader::Instance()->getAllRecords();
+    mDataList = MusicDownloader::Instance()->getCompletedRecords(mDataType == CompletedData);
     endResetModel();
 
     QTimer::singleShot(0, this, SIGNAL(loadFinished()));

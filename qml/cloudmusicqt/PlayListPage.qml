@@ -126,6 +126,16 @@ Page {
             spacing: platformStyle.paddingLarge
             ViewHeader {
                 title: "歌单"
+                Button {
+                    anchors {
+                        right: parent.right; verticalCenter: parent.verticalCenter
+                        rightMargin: platformStyle.paddingLarge
+                    }
+                    width: height
+                    iconSource: "gfx/download.svg"
+                    enabled: listView.count > 0
+                    onClicked: dlConfirmer.open()
+                }
             }
             Item {
                 anchors { left: parent.left; right: parent.right; margins: platformStyle.paddingLarge }
@@ -197,31 +207,22 @@ Page {
         }
     }
 
-    ContextMenu {
+    PlayListMenu {
         id: contextMenu
-        property int index
-        property bool downloaded
-        function init(idx) {
-            index = idx
-            downloaded = downloader.containsRecord(fetcher.dataAt(index).musicId)
-            open()
-        }
-        MenuLayout {
-            MenuItem {
-                text: contextMenu.downloaded ? "查看下载" : "下载"
-                onClicked: {
-                    var data = fetcher.dataAt(contextMenu.index)
-                    if (data) {
-                        if (contextMenu.downloaded) {
-                            pageStack.push(Qt.resolvedUrl("DownloadPage.qml"), { startId: data.musicId })
-                        }
-                        else {
-                            downloader.addTask(data)
-                            infoBanner.showMessage("已添加到下载列表")
-                        }
-                    }
-                }
-            }
+        fetcher: fetcher
+    }
+
+    QueryDialog {
+        id: dlConfirmer
+        titleText: "下载确认"
+        message: "当前歌单共有%1首歌曲，确定要下载吗？".arg(fetcher.count)
+        acceptButtonText: "下载"
+        rejectButtonText: "取消"
+        onAccepted: {
+            for (var i = 0; i < fetcher.count; i++)
+                downloader.addTask(fetcher.dataAt(i))
+
+            infoBanner.showMessage("已添加到下载列表")
         }
     }
 

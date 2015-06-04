@@ -79,12 +79,14 @@ Page {
         }
     }
 
-    function playDownloader(index) {
+    function playDownloader(model, id) {
         callerType = callerTypeDownload
         callerParam = null
 
         musicFetcher.disconnect()
-        musicFetcher.loadFromDownloader()
+        musicFetcher.loadFromDownloadModel(model)
+
+        var index = Math.max(0, musicFetcher.getIndexByMusicId(id))
 
         if (audio.status == Audio.Loading)
             audio.waitingIndex = index
@@ -226,6 +228,9 @@ Page {
 
                 isMusicDownloaded = downloader.containsRecord(currentMusic.musicId)
 
+                // TODO: load from local file
+                lrcLoader.loadFromMusicId(currentMusic.musicId)
+
                 if (app.pageStack.currentPage != page || !Qt.application.active) {
                     qmlApi.showNotification("网易云音乐",
                                             "正在播放: %1 - %2".arg(currentMusic.artistsDisplayName).arg(currentMusic.musicName),
@@ -316,6 +321,11 @@ Page {
         id: timeoutListener
         interval: 10 * 1000
         onTriggered: audio.playNextMusic()
+    }
+
+    LyricLoader {
+        id: lrcLoader
+        property string mid
     }
 
     Flickable {
@@ -501,8 +511,9 @@ Page {
                 text: currentMusic == null || !isMusicDownloaded ? "下载" : "查看下载"
                 onClicked: {
                     if (isMusicDownloaded) {
-                        pageStack.push(Qt.resolvedUrl("DownloadPage.qml"),
-                                       { startId: currentMusic.musicId })
+                        var prop = { startId: currentMusic.musicId,
+                            defaultTab: downloader.getCompletedFile(currentMusic.musicId)?1:0 }
+                        pageStack.push(Qt.resolvedUrl("DownloadPage.qml"), prop)
                     }
                     else {
                         downloader.addTask(currentMusic)

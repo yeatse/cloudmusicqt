@@ -8,6 +8,7 @@
 
 class QNetworkAccessManager;
 class QNetworkReply;
+class MusicDownloadModel;
 
 namespace QJson { class Parser; }
 
@@ -127,7 +128,7 @@ public:
     Q_INVOKABLE void searchSongs(const QString& text);
 
     Q_INVOKABLE void loadFromFetcher(MusicFetcher* other = 0);
-    Q_INVOKABLE void loadFromDownloader();
+    Q_INVOKABLE void loadFromDownloadModel(MusicDownloadModel* model = 0);
     Q_INVOKABLE void loadFromMusicInfo(MusicInfo* info = 0);
 
     Q_INVOKABLE MusicInfo* dataAt(const int& index) const;
@@ -135,6 +136,8 @@ public:
     Q_INVOKABLE QVariantMap getRawData() const;
 
     Q_INVOKABLE void reset();
+
+    Q_INVOKABLE int getIndexByMusicId(const QString& musicId) const;
 
     int count() const;
     bool loading() const;

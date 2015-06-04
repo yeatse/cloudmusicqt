@@ -4,11 +4,14 @@
 #include <QObject>
 #include <QPointer>
 #include <QDeclarativeParserStatus>
+#include <QStringList>
 
 namespace QJson { class Parser; }
 
 class QNetworkAccessManager;
 class QNetworkReply;
+
+class LyricLine;
 
 class LyricLoader : public QObject, public QDeclarativeParserStatus
 {
@@ -16,7 +19,6 @@ class LyricLoader : public QObject, public QDeclarativeParserStatus
     Q_INTERFACES(QDeclarativeParserStatus)
     Q_PROPERTY(QStringList lyric READ lyric NOTIFY lyricChanged)
     Q_PROPERTY(bool loading READ loading NOTIFY loadingChanged)
-    Q_PROPERTY(int lineIndex READ lineIndex NOTIFY lineIndexChanged)
 public:
     explicit LyricLoader(QObject *parent = 0);
     ~LyricLoader();
@@ -27,15 +29,14 @@ public:
     Q_INVOKABLE bool loadFromFile(const QString& fileName);
     Q_INVOKABLE void loadFromMusicId(const QString& musicId);
     Q_INVOKABLE void saveToFile(const QString& fileName);
+    Q_INVOKABLE int getLineByPosition(const int& millisec) const;
 
     QStringList lyric() const;
     bool loading() const;
-    int lineIndex() const;
 
 signals:
     void lyricChanged();
     void loadingChanged();
-    void lineIndexChanged();
 
 private:
     void reset();
@@ -50,8 +51,7 @@ private:
     QPointer<QNetworkReply> reply;
 
     QString rawData;
-    QStringList lrcLines;
-    int currentIndex;
+    QList<LyricLine*> lrcLines;
 
     bool isComponentComplete;
 };

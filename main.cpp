@@ -11,6 +11,7 @@
 #include "musicdownloader.h"
 #include "musicdownloadmodel.h"
 #include "musicdownloaddatabase.h"
+#include "lyricloader.h"
 
 #define PROXY_HOST "192.168.1.64"
 
@@ -40,6 +41,7 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     RegisterPlugin(MusicFetcher);
     RegisterPlugin(BlurredItem);
     RegisterPlugin(MusicDownloadModel);
+    RegisterPlugin(LyricLoader);
 
     QWebSettings::globalSettings()->setUserStyleSheetUrl(QUrl::fromLocalFile("qml/js/default_theme.css"));
 

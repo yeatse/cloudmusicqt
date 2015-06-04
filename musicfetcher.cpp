@@ -11,6 +11,7 @@
 
 #include "qjson/parser.h"
 #include "musicdownloader.h"
+#include "musicdownloadmodel.h"
 
 static const char* ApiBaseUrl = "http://music.163.com/api";
 
@@ -401,9 +402,7 @@ void MusicFetcher::searchSongs(const QString &text)
 void MusicFetcher::loadFromFetcher(MusicFetcher *other)
 {
     if (!other || this == other) return;
-
     reset();
-
     bool changed = false;
     mRawData = other->mRawData;
     foreach (MusicInfo* info, other->mDataList) {
@@ -417,11 +416,12 @@ void MusicFetcher::loadFromFetcher(MusicFetcher *other)
         emit dataChanged();
 }
 
-void MusicFetcher::loadFromDownloader()
+void MusicFetcher::loadFromDownloadModel(MusicDownloadModel *model)
 {
+    if (!model) return;
     reset();
     bool changed = false;
-    QList<MusicDownloadItem*> list = MusicDownloader::Instance()->getAllRecords();
+    QList<MusicDownloadItem*> list = model->getDataList();
     foreach (MusicDownloadItem* item, list) {
         MusicInfo* info = MusicInfo::fromVariant(item->rawData, -1, this);
         if (info) {
@@ -477,6 +477,15 @@ void MusicFetcher::reset()
         mDataList.clear();
         emit dataChanged();
     }
+}
+
+int MusicFetcher::getIndexByMusicId(const QString &musicId) const
+{
+    for (int i = 0; i < mDataList.size(); i++) {
+        if (mDataList.at(i)->id == musicId)
+            return i;
+    }
+    return -1;
 }
 
 int MusicFetcher::count() const

@@ -298,6 +298,15 @@ void MusicDownloader::cancel(const QString &id)
 
 void MusicDownloader::retry(const QString &id)
 {
+    if (id.isEmpty()) {
+        QList<MusicDownloadItem*> list = MusicDownloadDatabase::Instance()->getFailedRecords();
+        foreach (MusicDownloadItem* item, list) {
+            if (!item->id.isEmpty())
+                retry(item->id);
+        }
+        qDeleteAll(list);
+        return;
+    }
     QScopedPointer<MusicDownloadItem> item(MusicDownloadDatabase::Instance()->getRecord(id));
     if (!item)
         return;
@@ -323,6 +332,11 @@ void MusicDownloader::removeCompletedTask(const QString &id)
 bool MusicDownloader::containsRecord(const QString &id) const
 {
     return MusicDownloadDatabase::Instance()->containsRecord(id);
+}
+
+bool MusicDownloader::hasRunningTask() const
+{
+    return MusicDownloadDatabase::Instance()->hasRunningRecord();
 }
 
 QString MusicDownloader::getCompletedFile(const QString &id) const
@@ -365,17 +379,19 @@ void MusicDownloader::setQuality(const int &quality)
     }
 }
 
-QList<MusicDownloadItem*> MusicDownloader::getAllRecords()
+QList<MusicDownloadItem*> MusicDownloader::getCompletedRecords(bool completed)
 {
-    QList<MusicDownloadItem*> list = MusicDownloadDatabase::Instance()->getAllRecords();
-    foreach (MusicDownloadTask* task, runningTasks) {
-        foreach (MusicDownloadItem* item, list) {
-            if (item->id == task->task->id) {
-                item->status = task->task->status;
-                item->errcode = task->task->errcode;
-                item->progress = task->task->progress;
-                item->size = task->task->size;
-                break;
+    QList<MusicDownloadItem*> list = MusicDownloadDatabase::Instance()->getCompletedRecords(completed);
+    if (!completed) {
+        foreach (MusicDownloadTask* task, runningTasks) {
+            foreach (MusicDownloadItem* item, list) {
+                if (item->id == task->task->id) {
+                    item->status = task->task->status;
+                    item->errcode = task->task->errcode;
+                    item->progress = task->task->progress;
+                    item->size = task->task->size;
+                    break;
+                }
             }
         }
     }
@@ -387,7 +403,7 @@ void MusicDownloader::startNextTask()
     if (runningTasks.size() >= MaxSimultaneousTasks)
         return;
 
-    QList<MusicDownloadItem*> list = MusicDownloadDatabase::Instance()->getAllPendingRecords();
+    QList<MusicDownloadItem*> list = MusicDownloadDatabase::Instance()->getPendingRecords();
     while (runningTasks.size() < MaxSimultaneousTasks && !list.isEmpty()) {
         MusicDownloadTask* task = new MusicDownloadTask(this, list.takeFirst());
         runningTasks.append(task);
@@ -417,7 +433,7 @@ void MusicDownloader::slotTaskFinished()
     task->deleteLater();
 
     QTimer::singleShot(0, this, SLOT(startNextTask()));
-    emit dataChanged(item);
+    emit dataChanged();
 
     if (item->status == MusicDownloadItem::Completed)
         emit downloadCompleted(true, item->name);

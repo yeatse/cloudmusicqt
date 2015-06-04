@@ -17,6 +17,7 @@ public:
     ~MusicDownloadDatabase();
 
     bool containsRecord(const QString& musicId);
+    bool hasRunningRecord();
     bool addRecord(MusicDownloadItem* record);
     bool updateRecord(MusicDownloadItem* record);
 
@@ -28,7 +29,9 @@ public:
     bool removeCompletedTask(const QString& id = QString());
 
     QList<MusicDownloadItem*> getAllRecords();
-    QList<MusicDownloadItem*> getAllPendingRecords();
+    QList<MusicDownloadItem*> getPendingRecords();
+    QList<MusicDownloadItem*> getCompletedRecords(bool completed);
+    QList<MusicDownloadItem*> getFailedRecords();
 
     MusicDownloadItem* getRecord(const QString& musicId);
 
