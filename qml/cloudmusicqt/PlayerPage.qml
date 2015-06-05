@@ -336,23 +336,30 @@ Page {
                                 Math.min(screen.width, screen.height) + 200)
         boundsBehavior: Flickable.StopAtBounds
 
-        Image {
-            id: coverImage
+        Flipable {
+            id: coverFlip
             anchors {
                 top: parent.top; topMargin: platformStyle.graphicSizeSmall
                 horizontalCenter: parent.horizontalCenter
             }
             width: Math.min(screen.width, screen.height) - platformStyle.graphicSizeSmall * 2
             height: width
-            fillMode: Image.PreserveAspectCrop
-            source: coverImageUrl
-        }
+            front: Image {
+                id: coverImage
+                anchors.fill: parent
+                fillMode: Image.PreserveAspectCrop
+                source: coverImageUrl
 
-        Image {
-            visible: coverImage.status != Image.Ready
-            anchors.fill: coverImage
-            sourceSize { width: width; height: height }
-            source: "gfx/default_play_cover.png"
+                Image {
+                    visible: coverImage.status != Image.Ready
+                    anchors.fill: coverImage
+                    sourceSize { width: width; height: height }
+                    source: "gfx/default_play_cover.png"
+                }
+            }
+            back: Item {
+                id: lyricItem
+            }
         }
 
         ProgressBar {
