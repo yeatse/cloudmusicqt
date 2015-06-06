@@ -86,9 +86,16 @@ void LyricLoader::saveToFile(const QString &fileName)
     stream << rawData;
 }
 
-int LyricLoader::getLineByPosition(const int &millisec) const
+int LyricLoader::getLineByPosition(const int &millisec, const int &startPos) const
 {
-    return 0;
+    int result = qBound(0, startPos, lrcLines.size());
+    while (result < lrcLines.size()) {
+        if (lrcLines.at(result)->time > millisec)
+            break;
+
+        result++;
+    }
+    return result - 1;
 }
 
 QStringList LyricLoader::lyric() const
@@ -126,20 +133,33 @@ void LyricLoader::reset()
 
 bool LyricLoader::processContent(const QString &content)
 {
+    qDeleteAll(lrcLines);
+    lrcLines.clear();
+
     const QRegExp rx("\\[(\\d+):(\\d+(\\.\\d+)?)\\]");
-    int pos = 0;
-    int time = 0;
 
-    while (true) {
-        int p = rx.indexIn(content, pos);
-        qDebug() << pos << p;
-        lrcLines.append(new LyricLine(time, content.mid(pos, p)));
-        if (p == -1)
-            break;
-
-        time = int((rx.cap(1).toInt() * 60 + rx.cap(2).toDouble()) * 1000);
-        pos = p + rx.matchedLength();
+    int pos = rx.indexIn(content);
+    if (pos == -1) {
+        QStringList list = content.split('\n', QString::SkipEmptyParts);
+        foreach (QString line, list)
+            lrcLines.append(new LyricLine(0, line));
     }
+    else {
+        int lastPos = pos + rx.matchedLength();
+        int time = (rx.cap(1).toInt() * 60 + rx.cap(2).toDouble()) * 1000;
+        while (true) {
+            pos = rx.indexIn(content, lastPos);
+            if (pos == -1) {
+                lrcLines.append(new LyricLine(time, content.mid(lastPos).trimmed()));
+                break;
+            }
+            lrcLines.append(new LyricLine(time, content.mid(lastPos, pos - lastPos).trimmed()));
+            lastPos = pos + rx.matchedLength();
+            time = (rx.cap(1).toInt() * 60 + rx.cap(2).toDouble()) * 1000;
+        }
+    }
+
+    emit lyricChanged();
 
     return !lrcLines.isEmpty();
 }

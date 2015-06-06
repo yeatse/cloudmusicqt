@@ -29,7 +29,7 @@ public:
     Q_INVOKABLE bool loadFromFile(const QString& fileName);
     Q_INVOKABLE void loadFromMusicId(const QString& musicId);
     Q_INVOKABLE void saveToFile(const QString& fileName);
-    Q_INVOKABLE int getLineByPosition(const int& millisec) const;
+    Q_INVOKABLE int getLineByPosition(const int& millisec, const int& startPos = 0) const;
 
     QStringList lyric() const;
     bool loading() const;
