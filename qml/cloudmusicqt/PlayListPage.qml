@@ -168,7 +168,10 @@ Page {
                     anchors {
                         left: coverImage.right; leftMargin: platformStyle.paddingMedium
                         top: parent.top; topMargin: platformStyle.paddingSmall
+                        right: parent.right
                     }
+                    wrapMode: Text.Wrap
+                    maximumLineCount: 3
                     text: name
                 }
                 ListItemText {
