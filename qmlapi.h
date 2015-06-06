@@ -26,6 +26,9 @@ public:
     Q_INVOKABLE QString getUserId();
     Q_INVOKABLE void saveUserId(const QString& id);
 
+    Q_INVOKABLE int getVolume();
+    Q_INVOKABLE void saveVolume(const int& volume);
+
     Q_INVOKABLE void takeScreenShot();
 
     Q_INVOKABLE void showNotification(const QString& title, const QString& text,

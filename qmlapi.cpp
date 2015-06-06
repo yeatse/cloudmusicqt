@@ -52,6 +52,16 @@ void QmlApi::saveUserId(const QString &id)
     UserConfig::Instance()->setSetting(UserConfig::KeyUserId, id);
 }
 
+int QmlApi::getVolume()
+{
+    return qBound(0, UserConfig::Instance()->getSetting(UserConfig::KeyVolume, 30).toInt(), 100);
+}
+
+void QmlApi::saveVolume(const int &volume)
+{
+    UserConfig::Instance()->setSetting(UserConfig::KeyVolume, qBound(0, volume, 100));
+}
+
 void QmlApi::takeScreenShot()
 {
     QPixmap p = QPixmap::grabWidget(QApplication::activeWindow());

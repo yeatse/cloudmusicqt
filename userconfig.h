@@ -17,6 +17,7 @@ public:
     static const char* KeyDownloadQuality;
     static const char* KeyDownloadDirectory;
     static const char* KeyShowAccessPointTip;
+    static const char* KeyVolume;
 
     ~UserConfig();
 

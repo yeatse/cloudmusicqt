@@ -124,6 +124,29 @@ Page {
                     }
                 }
             }
+            Item { width: 1; height: platformStyle.paddingLarge }
+            ListItemText {
+                x: platformStyle.paddingLarge
+                text: "当前音量"
+                role: "SelectionTitle"
+            }
+            Slider {
+                anchors {
+                    left: parent.left; right: parent.right
+                    margins: platformStyle.paddingLarge
+                }
+                minimumValue: 0
+                maximumValue: 100
+                stepSize: 5
+                value: volumeIndicator.volume
+                valueIndicatorVisible: true
+                onValueChanged: {
+                    if (pressed)
+                        volumeIndicator.startTracking()
+
+                    volumeIndicator.volume = value
+                }
+            }
         }
     }
 }

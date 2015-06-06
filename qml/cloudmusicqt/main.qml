@@ -1,7 +1,7 @@
 import QtQuick 1.1
 import com.nokia.symbian 1.1
 import com.nokia.extras 1.1
-import QtMobility.systeminfo 1.1
+import QtMobility.systeminfo 1.2
 import com.yeatse.cloudmusic 1.0
 
 import "../js/api.js" as Api
@@ -20,6 +20,7 @@ PageStackWindow {
 
         function initialize() {
             Api.qmlApi = qmlApi
+            volumeIndicator.initVolume()
             resetBackground()
             user.initialize()
             checkForUpdate()
@@ -109,10 +110,6 @@ PageStackWindow {
         id: user
     }
 
-    DeviceInfo {
-        id: deviceInfo
-    }
-
     CountDownTimer {
         id: cdTimer
         onTriggered: Qt.quit()
@@ -120,7 +117,33 @@ PageStackWindow {
 
     VolumeIndicator {
         id: volumeIndicator
-        volume: Math.min(deviceInfo.voiceRingtoneVolume, 30)
+
+        function initVolume() {
+            if (deviceInfo.voiceRingtoneVolume == 0) {
+                saveVolumeListener.target = null
+                volumeIndicator.volume = 0
+            }
+            else {
+                volumeIndicator.volume = qmlApi.getVolume()
+                saveVolumeListener.target = volumeIndicator
+            }
+        }
+
+        function startTracking() {
+            saveVolumeListener.target = volumeIndicator
+        }
+
+        Connections {
+            id: saveVolumeListener
+            target: null
+            onVolumeChanged: qmlApi.saveVolume(volumeIndicator.volume)
+        }
+
+        DeviceInfo {
+            id: deviceInfo
+            monitorCurrentProfileChanges: true
+            onCurrentProfileChanged: volumeIndicator.initVolume()
+        }
     }
 
     InfoBanner {
