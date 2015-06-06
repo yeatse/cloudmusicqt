@@ -104,27 +104,48 @@ QList<MusicDownloadItem*> MusicDownloadModel::getDataList() const
     return list;
 }
 
+bool downloadItemSortLessThan(const MusicDownloadItem* item1, const MusicDownloadItem* item2)
+{
+    if (item1->status == MusicDownloadItem::Running)
+        return true;
+    if (item2->status == MusicDownloadItem::Running)
+        return false;
+    return item1->status > item2->status;
+}
+
 void MusicDownloadModel::refresh(MusicDownloadItem *item)
 {
     if (item) {
+        if (mDataType == CompletedData)
+            return;
+
         for (int i = 0; i < mDataList.size(); i++) {
             MusicDownloadItem* myData = mDataList.at(i);
             if (myData->id == item->id) {
+                bool moveToTop = myData->status != MusicDownloadItem::Running
+                        && item->status == MusicDownloadItem::Running;
                 myData->status = item->status;
                 myData->errcode = item->errcode;
                 myData->progress = item->progress;
                 myData->size = item->size;
-                emit dataChanged(index(i), index(i));
+                if (moveToTop) {
+                    beginResetModel();
+                    mDataList.move(i, 0);
+                    endResetModel();
+                }
+                else {
+                    dataChanged(index(i), index(i));
+                }
                 return;
             }
         }
-        if (mDataType == CompletedData)
-            return;
     }
 
     beginResetModel();
     qDeleteAll(mDataList);
     mDataList = MusicDownloader::Instance()->getCompletedRecords(mDataType == CompletedData);
+    if (mDataType == ProcessingData)
+        qStableSort(mDataList.begin(), mDataList.end(), downloadItemSortLessThan);
     endResetModel();
 
     QTimer::singleShot(0, this, SIGNAL(loadFinished()));
