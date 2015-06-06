@@ -315,11 +315,14 @@ Page {
             if (error == Audio.ResourceError || error == Audio.FormatError || error == Audio.AccessDenied)
                 playNextMusic()
         }
+    }
 
-        onPositionChanged: {
-            if (coverFlip.lrcVisible)
-                lyricItem.setPosition(position)
-        }
+    Connections {
+        target: Qt.application.active
+                && page.status == PageStatus.Active
+                && coverFlip.lrcVisible ? audio : null
+
+        onPositionChanged: lyricItem.setPosition(audio.position)
     }
 
     Timer {

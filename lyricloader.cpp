@@ -49,6 +49,8 @@ bool LyricLoader::loadFromFile(const QString &fileName)
     QFile file(fileName);
     if (file.size() && file.open(QIODevice::ReadOnly)) {
         QTextStream stream(&file);
+        stream.setCodec("UTF-8");
+        stream.setAutoDetectUnicode(true);
         return processContent(stream.readAll());
     }
     return false;
@@ -84,6 +86,7 @@ void LyricLoader::saveToFile(const QString &fileName)
         return;
 
     QTextStream stream(&file);
+    stream.setCodec("UTF-8");
     stream << mRawData;
 }
 
@@ -146,6 +149,11 @@ void LyricLoader::reset()
     }
 }
 
+bool lyricTimeLessThan(const LyricLine* line1, const LyricLine* line2)
+{
+    return line1->time < line2->time;
+}
+
 bool LyricLoader::processContent(const QString &content)
 {
     if (!mLines.isEmpty()) {
@@ -179,6 +187,7 @@ bool LyricLoader::processContent(const QString &content)
             lastPos = pos + rx.matchedLength();
             time = (rx.cap(1).toInt() * 60 + rx.cap(2).toDouble()) * 1000;
         }
+        qStableSort(mLines.begin(), mLines.end(), lyricTimeLessThan);
         mHasTimer = true;
     }
 
