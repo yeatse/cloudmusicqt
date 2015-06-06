@@ -86,7 +86,7 @@ void QmlApi::showNotification(const QString &title, const QString &text, const i
 #endif
 }
 
-static const int MaxAccurateNumberInQML = 65535;
+static const uint MaxAccurateNumberInQML = 65535;
 
 static QVariant fixVariant(const QVariant& variant)
 {
@@ -133,6 +133,11 @@ QString QmlApi::getNetEaseImageUrl(const QString &imgId)
 bool QmlApi::isFileExists(const QString &fileName)
 {
     return QFile::exists(fileName);
+}
+
+bool QmlApi::removeFile(const QString &fileName)
+{
+    return QFile::remove(fileName);
 }
 
 QString QmlApi::selectFolder(const QString &title, const QString &defaultDir)

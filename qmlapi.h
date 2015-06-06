@@ -38,6 +38,7 @@ public:
     Q_INVOKABLE QString getNetEaseImageUrl(const QString& imgId);
 
     Q_INVOKABLE bool isFileExists(const QString& fileName);
+    Q_INVOKABLE bool removeFile(const QString& fileName);
 
     Q_INVOKABLE QString selectFolder(const QString& title, const QString& defaultDir);
 

@@ -13,7 +13,7 @@
 #include "musicdownloaddatabase.h"
 #include "lyricloader.h"
 
-#define PROXY_HOST "192.168.1.64"
+//#define PROXY_HOST "192.168.1.64"
 
 #ifdef PROXY_HOST
 #include <QNetworkProxy>

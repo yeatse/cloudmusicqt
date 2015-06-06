@@ -48,7 +48,7 @@ Page {
             var parse = function(data, type) {
                 var prop = {
                     type: type,
-                    avatar: Api.getScaledImageUrl(data.user.avatarUrl, 80),
+                    avatar: Api.getScaledImageUrl(data.user.avatarUrl, 50),
                     content: data.user.nickname + ": " + data.content,
                     time: Qt.formatDateTime(new Date(Number(data.time)), "yyyy-MM-dd hh:mm:ss"),
                     refContent: ""

@@ -53,6 +53,7 @@ public:
     Q_INVOKABLE bool containsRecord(const QString& id) const;
     Q_INVOKABLE bool hasRunningTask() const;
     Q_INVOKABLE QString getCompletedFile(const QString& id) const;
+    Q_INVOKABLE QString getDownloadFileName(const QString& id) const;
 
     QString targetDir() const;
     void setTargetDir(const QString& dir);

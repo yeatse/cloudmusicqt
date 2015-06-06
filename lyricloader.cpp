@@ -23,18 +23,19 @@ public:
 };
 
 LyricLoader::LyricLoader(QObject *parent) : QObject(parent),
-    parser(new QJson::Parser), manager(0), isComponentComplete(false)
+    mParser(new QJson::Parser), mNetworkManager(0), mHasTimer(false),
+    isComponentComplete(false)
 {
 }
 
 LyricLoader::~LyricLoader()
 {
-    delete parser;
+    delete mParser;
 }
 
 void LyricLoader::classBegin()
 {
-    manager = qmlEngine(this)->networkAccessManager();
+    mNetworkManager = qmlEngine(this)->networkAccessManager();
 }
 
 void LyricLoader::componentComplete()
@@ -65,14 +66,14 @@ void LyricLoader::loadFromMusicId(const QString &musicId)
     url.addEncodedQueryItem("kv", "-1");
     url.addEncodedQueryItem("tv", "-1");
 
-    reply = manager->get(QNetworkRequest(url));
-    connect(reply, SIGNAL(finished()), SLOT(requestFinished()), Qt::QueuedConnection);
+    mReply = mNetworkManager->get(QNetworkRequest(url));
+    connect(mReply, SIGNAL(finished()), SLOT(requestFinished()), Qt::QueuedConnection);
     emit loadingChanged();
 }
 
 void LyricLoader::saveToFile(const QString &fileName)
 {
-    if (lrcLines.isEmpty() || rawData.isEmpty())
+    if (mLines.isEmpty() || mRawData.isEmpty())
         return;
 
     QFile file(fileName);
@@ -83,14 +84,17 @@ void LyricLoader::saveToFile(const QString &fileName)
         return;
 
     QTextStream stream(&file);
-    stream << rawData;
+    stream << mRawData;
 }
 
 int LyricLoader::getLineByPosition(const int &millisec, const int &startPos) const
 {
-    int result = qBound(0, startPos, lrcLines.size());
-    while (result < lrcLines.size()) {
-        if (lrcLines.at(result)->time > millisec)
+    if (!mHasTimer || mLines.isEmpty())
+        return -1;
+
+    int result = qBound(0, startPos, mLines.size());
+    while (result < mLines.size()) {
+        if (mLines.at(result)->time > millisec)
             break;
 
         result++;
@@ -98,51 +102,69 @@ int LyricLoader::getLineByPosition(const int &millisec, const int &startPos) con
     return result - 1;
 }
 
+bool LyricLoader::dataAvailable() const
+{
+    return !mLines.isEmpty() && !mRawData.isEmpty();
+}
+
 QStringList LyricLoader::lyric() const
 {
     QStringList list;
-    foreach (LyricLine* line, lrcLines)
+    foreach (LyricLine* line, mLines)
         list.append(line->text);
     return list;
 }
 
+bool LyricLoader::hasTimer() const
+{
+    return mHasTimer;
+}
+
 bool LyricLoader::loading() const
 {
-    return reply && reply->isRunning();
+    return mReply && mReply->isRunning();
 }
 
 void LyricLoader::reset()
 {
-    if (reply && reply->isRunning()) {
-        reply->abort();
-        reply = 0;
+    if (mReply && mReply->isRunning()) {
+        mReply->abort();
+        mReply = 0;
         emit loadingChanged();
     }
     else {
-        reply = 0;
+        mReply = 0;
     }
 
-    rawData.clear();
+    mRawData.clear();
 
-    if (lrcLines.size()) {
-        qDeleteAll(lrcLines);
-        lrcLines.clear();
+    if (!mLines.isEmpty()) {
+        qDeleteAll(mLines);
+        mLines.clear();
+        mHasTimer = false;
         emit lyricChanged();
     }
 }
 
 bool LyricLoader::processContent(const QString &content)
 {
-    qDeleteAll(lrcLines);
-    lrcLines.clear();
+    if (!mLines.isEmpty()) {
+        qDeleteAll(mLines);
+        mLines.clear();
+        mHasTimer = false;
+        emit lyricChanged();
+    }
 
     const QRegExp rx("\\[(\\d+):(\\d+(\\.\\d+)?)\\]");
 
+    mRawData = content;
     int pos = rx.indexIn(content);
     if (pos == -1) {
         QStringList list = content.split('\n', QString::SkipEmptyParts);
         foreach (QString line, list)
-            lrcLines.append(new LyricLine(0, line));
+            mLines.append(new LyricLine(0, line));
+
+        mHasTimer = false;
     }
     else {
         int lastPos = pos + rx.matchedLength();
@@ -150,30 +172,32 @@ bool LyricLoader::processContent(const QString &content)
         while (true) {
             pos = rx.indexIn(content, lastPos);
             if (pos == -1) {
-                lrcLines.append(new LyricLine(time, content.mid(lastPos).trimmed()));
+                mLines.append(new LyricLine(time, content.mid(lastPos).trimmed()));
                 break;
             }
-            lrcLines.append(new LyricLine(time, content.mid(lastPos, pos - lastPos).trimmed()));
+            mLines.append(new LyricLine(time, content.mid(lastPos, pos - lastPos).trimmed()));
             lastPos = pos + rx.matchedLength();
             time = (rx.cap(1).toInt() * 60 + rx.cap(2).toDouble()) * 1000;
         }
+        mHasTimer = true;
     }
 
-    emit lyricChanged();
+    if (!mLines.isEmpty()) {
+        emit lyricChanged();
+        return true;
+    }
 
-    return !lrcLines.isEmpty();
+    return false;
 }
 
 void LyricLoader::requestFinished()
 {
     sender()->deleteLater();
-    if (reply != sender())
+    if (mReply != sender())
         return;
 
-    emit loadingChanged();
-
-    if (reply->error() == QNetworkReply::NoError) {
-        QVariantMap resp = parser->parse(reply->readAll()).toMap();
+    if (mReply->error() == QNetworkReply::NoError) {
+        QVariantMap resp = mParser->parse(mReply->readAll()).toMap();
         if (resp.value("code", -1).toInt() == 200) {
             QString lrc = resp.value("lrc").toMap().value("lyric").toString();
             if (processContent(lrc)) {
@@ -181,4 +205,6 @@ void LyricLoader::requestFinished()
             }
         }
     }
+
+    emit loadingChanged();
 }

@@ -22,3 +22,9 @@ function verNameToVerCode(vername) {
         return 0;
     }
 }
+
+function getLyricFromMusic(file) {
+    if (file == "") return "";
+    var idx = file.lastIndexOf(".");
+    return idx > 0 ? file.substring(0, idx) + ".lrc" : "";
+}

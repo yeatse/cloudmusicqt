@@ -2,6 +2,8 @@ import QtQuick 1.1
 import com.nokia.symbian 1.1
 import com.yeatse.cloudmusic 1.0
 
+import "../js/util.js" as Util
+
 Page {
     id: page
 
@@ -114,8 +116,8 @@ Page {
                 }
             }
             onClicked: {
-                contextMenu.mIndex = index
-                contextMenu.mStatus = status
+                contextMenu.itemStatus = status
+                contextMenu.errcode = errcode
                 contextMenu.musicId = id
                 contextMenu.open()
             }
@@ -125,31 +127,35 @@ Page {
     ContextMenu {
         id: contextMenu
 
-        property int mIndex
-        property int mStatus
+        property int itemStatus
+        property int errcode
         property string musicId
 
         MenuLayout {
             MenuItem {
                 text: "暂停"
-                visible: contextMenu.mStatus == 0 || contextMenu.mStatus == 1
+                visible: contextMenu.itemStatus == 0 || contextMenu.itemStatus == 1
                 onClicked: downloader.pause(contextMenu.musicId)
             }
             MenuItem {
                 text: "继续"
-                visible: contextMenu.mStatus == 2
+                visible: contextMenu.itemStatus == 2
                 onClicked: downloader.resume(contextMenu.musicId)
             }
             MenuItem {
                 text: "播放"
-                visible: contextMenu.mStatus == 3
+                visible: contextMenu.itemStatus == 3
                 onClicked: player.playDownloader(dlModel, contextMenu.musicId)
             }
             MenuItem {
                 text: "删除"
                 enabled: player.currentMusic == null || player.currentMusic.musicId != contextMenu.musicId
                 onClicked: {
-                    if (contextMenu.mStatus == 3)
+                    var file = Util.getLyricFromMusic(downloader.getDownloadFileName(contextMenu.musicId))
+                    if (file != "")
+                        qmlApi.removeFile(file)
+
+                    if (contextMenu.itemStatus == 3 || (contextMenu.itemStatus == 4 && contextMenu.errcode == 4))
                         downloader.removeCompletedTask(contextMenu.musicId)
                     else
                         downloader.cancel(contextMenu.musicId)
@@ -157,7 +163,7 @@ Page {
             }
             MenuItem {
                 text: "重试"
-                visible: contextMenu.mStatus == 4
+                visible: contextMenu.itemStatus == 4
                 onClicked: downloader.retry(contextMenu.musicId)
             }
         }

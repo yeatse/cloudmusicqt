@@ -345,6 +345,12 @@ QString MusicDownloader::getCompletedFile(const QString &id) const
     return item && item->status == MusicDownloadItem::Completed ? item->fileName : "";
 }
 
+QString MusicDownloader::getDownloadFileName(const QString &id) const
+{
+    QScopedPointer<MusicDownloadItem> item(MusicDownloadDatabase::Instance()->getRecord(id));
+    return item ? item->fileName : "";
+}
+
 QString MusicDownloader::targetDir() const
 {
     return mTargetDir;

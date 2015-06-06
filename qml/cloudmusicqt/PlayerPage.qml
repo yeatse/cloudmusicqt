@@ -228,8 +228,8 @@ Page {
 
                 isMusicDownloaded = downloader.containsRecord(currentMusic.musicId)
 
-                // TODO: load from local file
-                lrcLoader.loadFromMusicId(currentMusic.musicId)
+                if (coverFlip.lrcVisible)
+                    lyricItem.loadLyric(currentMusic.musicId)
 
                 if (app.pageStack.currentPage != page || !Qt.application.active) {
                     qmlApi.showNotification("网易云音乐",
@@ -315,17 +315,17 @@ Page {
             if (error == Audio.ResourceError || error == Audio.FormatError || error == Audio.AccessDenied)
                 playNextMusic()
         }
+
+        onPositionChanged: {
+            if (coverFlip.lrcVisible)
+                lyricItem.setPosition(position)
+        }
     }
 
     Timer {
         id: timeoutListener
         interval: 10 * 1000
         onTriggered: audio.playNextMusic()
-    }
-
-    LyricLoader {
-        id: lrcLoader
-        property string mid
     }
 
     Flickable {
@@ -338,6 +338,7 @@ Page {
 
         Flipable {
             id: coverFlip
+            property bool lrcVisible: false
             anchors {
                 top: parent.top; topMargin: platformStyle.graphicSizeSmall
                 horizontalCenter: parent.horizontalCenter
@@ -356,17 +357,51 @@ Page {
                     sourceSize { width: width; height: height }
                     source: "gfx/default_play_cover.png"
                 }
+
+                MouseArea {
+                    anchors.fill: parent
+                    enabled: currentMusic != null
+                    onClicked: coverFlip.lrcVisible = true
+                }
             }
-            back: Item {
+            back: LyricItem {
                 id: lyricItem
+                anchors.fill: parent
+                onClicked: coverFlip.lrcVisible = false
             }
+            transform: Rotation {
+                id: flipRotation
+                origin { x: coverFlip.width / 2; y: coverFlip.height / 2 }
+                axis { x: 0; y: 1; z: 0 }
+                angle: 0
+            }
+            states: [
+                State {
+                    name: "back"
+                    PropertyChanges { target: flipRotation; angle: 180 }
+                    when: coverFlip.lrcVisible
+                }
+            ]
+            transitions: [
+                Transition {
+                    to: ""
+                    NumberAnimation { property: "angle" }
+                },
+                Transition {
+                    to: "back"
+                    SequentialAnimation {
+                        NumberAnimation { property: "angle" }
+                        ScriptAction { script: lyricItem.loadLyric(currentMusic.musicId) }
+                    }
+                }
+            ]
         }
 
         ProgressBar {
             id: progressBar
             anchors {
-                left: coverImage.left; right: coverImage.right
-                top: coverImage.bottom
+                left: coverFlip.left; right: coverFlip.right
+                top: coverFlip.bottom
             }
             value: audio.position / audio.duration * 1.0
             indeterminate: audio.status == Audio.Loading || audio.status == Audio.Stalled
@@ -526,6 +561,8 @@ Page {
                         downloader.addTask(currentMusic)
                         isMusicDownloaded = true
                         infoBanner.showMessage("已添加到下载列表")
+                        if (coverFlip.lrcVisible)
+                            lyricItem.saveCurrentLyric()
                     }
                 }
             }
