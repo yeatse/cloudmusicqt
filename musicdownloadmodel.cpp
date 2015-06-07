@@ -41,6 +41,11 @@ void MusicDownloadModel::setDataType(const DataType &type)
     }
 }
 
+int MusicDownloadModel::count() const
+{
+    return mDataList.size();
+}
+
 int MusicDownloadModel::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent)

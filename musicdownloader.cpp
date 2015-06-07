@@ -237,7 +237,7 @@ MusicDownloader::MusicDownloader() : QObject(), mQuality(0)
         dir.mkpath(dir.absolutePath());
 }
 
-void MusicDownloader::addTask(MusicInfo *info)
+void MusicDownloader::addTask(MusicInfo *info, bool notifyDataChange)
 {
     MusicDownloadDatabase* db = MusicDownloadDatabase::Instance();
     if (db->containsRecord(info->musicId()))
@@ -247,7 +247,8 @@ void MusicDownloader::addTask(MusicInfo *info)
     db->addRecord(item.data());
     QTimer::singleShot(0, this, SLOT(startNextTask()));
 
-    emit dataChanged();
+    if (notifyDataChange)
+        emit dataChanged();
 }
 
 void MusicDownloader::pause(const QString &id)
@@ -282,7 +283,7 @@ void MusicDownloader::resume(const QString &id)
     emit dataChanged();
 }
 
-void MusicDownloader::cancel(const QString &id)
+void MusicDownloader::cancel(const QString &id, bool notifyDataChange)
 {
     MusicDownloadDatabase::Instance()->cancel(id);
     foreach (MusicDownloadTask* task, runningTasks) {
@@ -293,40 +294,46 @@ void MusicDownloader::cancel(const QString &id)
             QTimer::singleShot(0, task, SLOT(abort()));
         }
     }
-    emit dataChanged();
+    if (notifyDataChange)
+        emit dataChanged();
 }
 
-void MusicDownloader::retry(const QString &id)
+void MusicDownloader::retry(const QString &id, bool notifyDataChange)
 {
     if (id.isEmpty()) {
         QList<MusicDownloadItem*> list = MusicDownloadDatabase::Instance()->getFailedRecords();
         foreach (MusicDownloadItem* item, list) {
             if (!item->id.isEmpty())
-                retry(item->id);
+                retry(item->id, false);
         }
         qDeleteAll(list);
+        emit dataChanged();
         return;
     }
     QScopedPointer<MusicDownloadItem> item(MusicDownloadDatabase::Instance()->getRecord(id));
     if (!item)
         return;
 
-    cancel(id);
-    removeCompletedTask(id);
+    cancel(id, false);
+    removeCompletedTask(id, false);
 
     QScopedPointer<MusicInfo> info(MusicInfo::fromVariant(item->rawData, -1));
     if (info)
-        addTask(info.data());
+        addTask(info.data(), false);
+
+    if (notifyDataChange)
+        emit dataChanged();
 }
 
-void MusicDownloader::removeCompletedTask(const QString &id)
+void MusicDownloader::removeCompletedTask(const QString &id, bool notifyDataChange)
 {
     MusicDownloadDatabase* db = MusicDownloadDatabase::Instance();
     QScopedPointer<MusicDownloadItem> item(db->getRecord(id));
     if (item && item->status == MusicDownloadItem::Completed)
         QFile::remove(item->fileName);
     db->removeCompletedTask(id);
-    emit dataChanged();
+    if (notifyDataChange)
+        emit dataChanged();
 }
 
 bool MusicDownloader::containsRecord(const QString &id) const

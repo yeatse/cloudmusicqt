@@ -294,12 +294,13 @@ Page {
                 var src = audio.source.toString()
                 if (src.indexOf(prefix1) == 0 || src.indexOf(prefix2) == 0) {
                     if (src.indexOf(prefix1) == 0)
-                        src.replace(prefix1, prefix2)
+                        src = src.replace(prefix1, prefix2)
                     else
-                        src.replace(prefix2, prefix1)
+                        src = src.replace(prefix2, prefix1)
 
                     retryCount ++
                     audio.source = src
+                    audio.play()
                     return
                 }
             }
@@ -371,7 +372,7 @@ Page {
 
     Timer {
         id: timeoutListener
-        interval: 5 * 1000
+        interval: 3 * 1000
         onTriggered: audio.handleTimeOut()
     }
 

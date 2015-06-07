@@ -42,12 +42,12 @@ class MusicDownloader : public QObject
     Q_PROPERTY(int quality READ quality WRITE setQuality NOTIFY qualityChanged)
 
 public slots:
-    void addTask(MusicInfo* info);
+    void addTask(MusicInfo* info, bool notifyDataChange = true);
     void pause(const QString& id = QString());
     void resume(const QString& id = QString());
-    void cancel(const QString& id = QString());
-    void retry(const QString& id = QString());
-    void removeCompletedTask(const QString& id);
+    void cancel(const QString& id = QString(), bool notifyDataChange = true);
+    void retry(const QString& id = QString(), bool notifyDataChange = true);
+    void removeCompletedTask(const QString& id, bool notifyDataChange = true);
 
 public:
     Q_INVOKABLE bool containsRecord(const QString& id) const;
