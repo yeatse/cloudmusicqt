@@ -176,16 +176,24 @@ bool LyricLoader::processContent(const QString &content)
     }
     else {
         int lastPos = pos + rx.matchedLength();
-        int time = (rx.cap(1).toInt() * 60 + rx.cap(2).toDouble()) * 1000;
+        QList<int> timeLabels;
+        timeLabels << (rx.cap(1).toInt() * 60 + rx.cap(2).toDouble()) * 1000;
         while (true) {
             pos = rx.indexIn(content, lastPos);
             if (pos == -1) {
-                mLines.append(new LyricLine(time, content.mid(lastPos).trimmed()));
+                QString text = content.mid(lastPos).trimmed();
+                foreach (const int& time, timeLabels)
+                    mLines.append(new LyricLine(time, text));
                 break;
             }
-            mLines.append(new LyricLine(time, content.mid(lastPos, pos - lastPos).trimmed()));
+            QString text = content.mid(lastPos, pos - lastPos);
+            if (!text.isEmpty()) {
+                foreach (const int& time, timeLabels)
+                    mLines.append(new LyricLine(time, text.trimmed()));
+                timeLabels.clear();
+            }
             lastPos = pos + rx.matchedLength();
-            time = (rx.cap(1).toInt() * 60 + rx.cap(2).toDouble()) * 1000;
+            timeLabels << (rx.cap(1).toInt() * 60 + rx.cap(2).toDouble()) * 1000;
         }
         qStableSort(mLines.begin(), mLines.end(), lyricTimeLessThan);
         mHasTimer = true;

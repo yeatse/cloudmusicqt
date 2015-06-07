@@ -100,6 +100,7 @@ Page {
                     onDataTypeChanged: ctrlBtn.reset()
                     onLoadFinished: ctrlBtn.reset()
                 }
+                Component.onCompleted: reset()
             }
         }
         delegate: MusicListItem {
