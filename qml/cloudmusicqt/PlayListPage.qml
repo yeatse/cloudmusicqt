@@ -196,7 +196,7 @@ Page {
                 anchors { left: parent.left; right: parent.right; margins: platformStyle.paddingLarge }
                 text: "播放全部"
                 enabled: !fetcher.loading && fetcher.count > 0
-                onClicked: player.playFetcher(fetcher.type, {listId: listId}, fetcher, 0)
+                onClicked: player.playFetcher(fetcher.type, {listId: listId}, fetcher, -1)
             }
         }
 

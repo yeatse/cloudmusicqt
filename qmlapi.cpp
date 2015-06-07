@@ -62,6 +62,16 @@ void QmlApi::saveVolume(const int &volume)
     UserConfig::Instance()->setSetting(UserConfig::KeyVolume, qBound(0, volume, 100));
 }
 
+QString QmlApi::getPlayMode()
+{
+    return UserConfig::Instance()->getSetting(UserConfig::KeyPlayMode, "Normal").toString();
+}
+
+void QmlApi::savePlayMode(const QString &playMode)
+{
+    UserConfig::Instance()->setSetting(UserConfig::KeyPlayMode, playMode);
+}
+
 void QmlApi::takeScreenShot()
 {
     QPixmap p = QPixmap::grabWidget(QApplication::activeWindow());

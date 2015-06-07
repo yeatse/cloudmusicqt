@@ -29,6 +29,9 @@ public:
     Q_INVOKABLE int getVolume();
     Q_INVOKABLE void saveVolume(const int& volume);
 
+    Q_INVOKABLE QString getPlayMode();
+    Q_INVOKABLE void savePlayMode(const QString& playMode);
+
     Q_INVOKABLE void takeScreenShot();
 
     Q_INVOKABLE void showNotification(const QString& title, const QString& text,

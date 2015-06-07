@@ -20,9 +20,16 @@ Page {
     property string callerTypeDownload: "DownloadPage"
     property string callerTypeSingle: "SingleMusic"
 
+    property string playModeNormal: "Normal"
+    property string playModeSingleMusic: "Single"
+    property string playModeShuffle: "Shuffle"
+
     property bool isMusicCollected: false
     property bool isMusicCollecting: false
     property bool isMusicDownloaded: false
+
+    property string playMode: qmlApi.getPlayMode()
+    onPlayModeChanged: qmlApi.savePlayMode(playMode)
 
     function playPrivateFM() {
         bringToFront()
@@ -41,8 +48,8 @@ Page {
     }
 
     function playFetcher(type, param, fetcher, index) {
-        if (type == callerType && qmlApi.compareVariant(param, callerParam)
-                && currentIndex == index && audio.playing)
+        if (index != -1 && type == callerType && qmlApi.compareVariant(param, callerParam)
+                && audio.playing && currentMusic.musicId == fetcher.dataAt(index).musicId)
         {
             if (audio.paused) audio.play()
             else bringToFront()
@@ -54,6 +61,13 @@ Page {
 
         musicFetcher.disconnect()
         musicFetcher.loadFromFetcher(fetcher)
+
+        if (index == -1) {
+            if (playMode == playModeShuffle)
+                index = Math.floor(Math.random() * musicFetcher.count)
+            else
+                index = 0
+        }
 
         if (audio.status == Audio.Loading)
             audio.waitingIndex = index
@@ -80,13 +94,17 @@ Page {
     }
 
     function playDownloader(model, id) {
+        if (model.count == 0) return
+
         callerType = callerTypeDownload
         callerParam = null
 
         musicFetcher.disconnect()
         musicFetcher.loadFromDownloadModel(model)
 
-        var index = Math.max(0, musicFetcher.getIndexByMusicId(id))
+        var index = id == "" && playMode == playModeShuffle
+                ? Math.floor(Math.random() * musicFetcher.count)
+                : Math.max(0, musicFetcher.getIndexByMusicId(id))
 
         if (audio.status == Audio.Loading)
             audio.waitingIndex = index
@@ -150,9 +168,8 @@ Page {
     orientationLock: PageOrientation.LockPortrait
 
     onStatusChanged: {
-        if (status == PageStatus.Active) {
-            app.forceActiveFocus()
-        }
+        if (status == PageStatus.Active)
+            app.focus = true
     }
 
     Connections {
@@ -197,27 +214,24 @@ Page {
         id: audio
 
         property int waitingIndex: -1
+        property int retryCount: 0
 
         volume: volumeIndicator.volume / 100
 
         function setCurrentMusic(index) {
             waitingIndex = -1
+            retryCount = 0
             if (index >= 0 && index < musicFetcher.count) {
                 currentMusic = musicFetcher.dataAt(index)
                 coverImageUrl = Api.getScaledImageUrl(currentMusic.albumImageUrl, 640)
                 currentIndex = index
 
                 var loc = downloader.getCompletedFile(currentMusic.musicId)
-                if (qmlApi.isFileExists(loc)) {
+                if (qmlApi.isFileExists(loc))
                     audio.source = "file:///" + loc
-                }
-                else if (callerType == callerTypeDownload) {
-                    playNextMusic()
-                    return
-                }
-                else {
+                else
                     audio.source = currentMusic.getUrl(MusicInfo.LowQuality)
-                }
+
                 audio.play()
 
                 isMusicCollecting = false
@@ -254,12 +268,42 @@ Page {
             else if (musicFetcher.count == 0) {
                 playPrivateFM()
             }
+            else if (callerType == callerTypeDJ || callerType == callerTypeSingle || musicFetcher.count == 1) {
+                setCurrentMusic(0)
+            }
+            else if (playMode == playModeShuffle) {
+                var index = currentIndex
+                while (index == currentIndex)
+                    index = Math.floor(Math.random() * musicFetcher.count)
+                setCurrentMusic(index)
+            }
+            else if (playMode == playModeSingleMusic) {
+                setCurrentMusic(currentIndex)
+            }
             else {
                 if (currentIndex < musicFetcher.count - 1)
                     setCurrentMusic(currentIndex + 1)
-                else if (callerType != callerTypeDownload)
+                else
                     setCurrentMusic(0)
             }
+        }
+
+        function handleTimeOut() {
+            if (retryCount < 1) {
+                var prefix1 = "http://m1.music.126.net", prefix2 = "http://m2.music.126.net"
+                var src = audio.source.toString()
+                if (src.indexOf(prefix1) == 0 || src.indexOf(prefix2) == 0) {
+                    if (src.indexOf(prefix1) == 0)
+                        src.replace(prefix1, prefix2)
+                    else
+                        src.replace(prefix2, prefix1)
+
+                    retryCount ++
+                    audio.source = src
+                    return
+                }
+            }
+            audio.playNextMusic()
         }
 
         function debugStatus() {
@@ -327,8 +371,8 @@ Page {
 
     Timer {
         id: timeoutListener
-        interval: 10 * 1000
-        onTriggered: audio.playNextMusic()
+        interval: 5 * 1000
+        onTriggered: audio.handleTimeOut()
     }
 
     Flickable {
@@ -532,6 +576,28 @@ Page {
             ToolButton {
                 iconSource: "toolbar-back"
                 onClicked: pageStack.pop()
+            }
+            ToolButton {
+                visible: callerType != ""
+                         && callerType != callerTypeDJ
+                         && callerType != callerTypePrivateFM
+                         && callerType != callerTypeSingle
+                iconSource: {
+                    if (playMode == playModeSingleMusic)
+                        return "gfx/repeat_single.svg"
+                    else if (playMode == playModeShuffle)
+                        return "gfx/shuffle.svg"
+                    else
+                        return "gfx/repeat.svg"
+                }
+                onClicked: {
+                    if (playMode == playModeShuffle)
+                        playMode = playModeSingleMusic
+                    else if (playMode == playModeSingleMusic)
+                        playMode = playModeNormal
+                    else
+                        playMode = playModeShuffle
+                }
             }
             ToolButton {
                 iconSource: "toolbar-menu"

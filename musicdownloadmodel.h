@@ -11,6 +11,7 @@ class MusicDownloadModel : public QAbstractListModel
     Q_OBJECT
     Q_ENUMS(DataType)
     Q_PROPERTY(DataType dataType READ dataType WRITE setDataType NOTIFY dataTypeChanged)
+    Q_PROPERTY(int count READ rowCount NOTIFY loadFinished)
 public:
     enum DataRoles {
         IdRole = Qt::UserRole + 1,

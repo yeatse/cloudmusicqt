@@ -8,6 +8,7 @@ const char* UserConfig::KeyDownloadQuality = "downloadQuality";
 const char* UserConfig::KeyDownloadDirectory = "downloadDirectory";
 const char* UserConfig::KeyShowAccessPointTip = "showAccessPointTip";
 const char* UserConfig::KeyVolume = "volume";
+const char* UserConfig::KeyPlayMode = "playMode";
 
 UserConfig::UserConfig() : QObject(), settings(0)
 {
