@@ -175,10 +175,11 @@ bool LyricLoader::processContent(const QString &content)
         mHasTimer = false;
     }
     else {
-        int lastPos = pos + rx.matchedLength();
+        int lastPos;
         QList<int> timeLabels;
-        timeLabels << (rx.cap(1).toInt() * 60 + rx.cap(2).toDouble()) * 1000;
-        while (true) {
+        do {
+            timeLabels << (rx.cap(1).toInt() * 60 + rx.cap(2).toDouble()) * 1000;
+            lastPos = pos + rx.matchedLength();
             pos = rx.indexIn(content, lastPos);
             if (pos == -1) {
                 QString text = content.mid(lastPos).trimmed();
@@ -192,9 +193,8 @@ bool LyricLoader::processContent(const QString &content)
                     mLines.append(new LyricLine(time, text.trimmed()));
                 timeLabels.clear();
             }
-            lastPos = pos + rx.matchedLength();
-            timeLabels << (rx.cap(1).toInt() * 60 + rx.cap(2).toDouble()) * 1000;
         }
+        while (true);
         qStableSort(mLines.begin(), mLines.end(), lyricTimeLessThan);
         mHasTimer = true;
     }
