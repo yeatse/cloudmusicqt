@@ -65,7 +65,13 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     QObject::connect(qApp, SIGNAL(aboutToQuit()), downloader, SLOT(pause()));
     QObject::connect(qApp, SIGNAL(aboutToQuit()), MusicDownloadDatabase::Instance(), SLOT(freeResource()));
 
+#ifdef Q_OS_SYMBIAN
     viewer->setMainQmlFile(QLatin1String("qml/cloudmusicqt/main.qml"));
+#elif defined(Q_OS_HARMATTAN)
+    viewer->setMainQmlFile(QLatin1String("qml/harmattan/main.qml"));
+#elif defined(Q_WS_SIMULATOR)
+    viewer->setMainQmlFile(QLatin1String("qml/harmattan/main.qml"));
+#endif
     viewer->showExpanded();
 
     return app->exec();

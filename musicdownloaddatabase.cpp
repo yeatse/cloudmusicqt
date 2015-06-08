@@ -34,7 +34,13 @@ void MusicDownloadDatabase::initDatabase()
 {
     if (!QSqlDatabase::contains(TABLE_NAME)) {
         db = new QSqlDatabase(QSqlDatabase::addDatabase("QSQLITE", TABLE_NAME));
+#ifdef Q_OS_SYMBIAN
         db->setDatabaseName(DB_FILE_NAME);
+#else
+        QDir dir(QDesktopServices::storageLocation(QDesktopServices::DataLocation));
+        if (!dir.exists()) dir.mkpath(dir.absolutePath());
+        db->setDatabaseName(QDir::cleanPath(dir.absoluteFilePath(DB_FILE_NAME)));
+#endif
         db->open();
         createTable();
     }

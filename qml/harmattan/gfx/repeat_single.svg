@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!-- Converted with SVG Converter - Version 0.9.5 (Compiled Mon May 30 09:08:51 2011) - Copyright (C) 2011 Nokia -->
+<svg xmlns="http://www.w3.org/2000/svg" width="30px" x="0px" y="0px" version="1.1" viewBox="0 0 30 30" height="30px" baseProfile="tiny" xmlns:xlink="http://www.w3.org/1999/xlink" id="svg2" xml:space="preserve">
+ <metadata id="metadata21"/>
+ <defs id="defs19"/>
+ <g id="DO_NOT_EDIT_-_BOUNDING_BOX">
+  <rect width="30" fill="none" height="30" id="BOUNDING_BOX"/>
+ </g>
+ <g id="PLACE_YOUR_GRAPHIC_HERE">
+  <path stroke-opacity="0.3" fill-opacity="0.3" id="path7" d="M22,7h-1c-0.549,0-1,0.451-1,1v2c0,0.551,0.451,1,1,1h1c1.084,0,2,0.916,2,2v5c0,1.084-0.916,2-2,2H8   c-1.084,0-2-0.916-2-2v-5c0-1.084,0.916-2,2-2h4v3l6-5l-6-5v3H8c-3.301,0-6,2.7-6,6v5c0,3.301,2.699,6,6,6h14c3.301,0,6-2.699,6-6   v-5C28,9.7,25.301,7,22,7z"/>
+  <rect width="30" fill="none" height="30" id="rect9"/>
+  <path stroke-opacity="0.15" fill-opacity="0.15" id="path11" d="M8,26c-3.86,0-7-3.141-7-7v-5c0-3.86,3.14-7,7-7h3V5c0-0.388,0.225-0.741,0.576-0.906   C11.711,4.031,11.856,4,12,4c0.229,0,0.457,0.079,0.64,0.232l6,5C18.868,9.422,19,9.703,19,10s-0.132,0.578-0.359,0.768l-6,5   C12.457,15.921,12.229,16,12,16c-0.144,0-0.289-0.031-0.424-0.094C11.225,15.741,11,15.388,11,15v-2H8c-0.533,0-1,0.467-1,1v5   c0,0.532,0.467,1,1,1h14c0.532,0,1-0.468,1-1v-5c0-0.533-0.468-1-1-1h-1c-1.103,0-2-0.897-2-2V9c0-1.103,0.897-2,2-2h1   c3.859,0,7,3.14,7,7v5c0,3.859-3.141,7-7,7H8z"/>
+  <path stroke-opacity="0.15" fill-opacity="0.15" id="path13" d="M22,8h-1c-0.549,0-1,0.451-1,1v2c0,0.551,0.451,1,1,1h1c1.084,0,2,0.916,2,2v5c0,1.084-0.916,2-2,2H8   c-1.084,0-2-0.916-2-2v-5c0-1.084,0.916-2,2-2h4v3l6-5l-6-5v3H8c-3.301,0-6,2.7-6,6v5c0,3.301,2.699,6,6,6h14c3.301,0,6-2.699,6-6   v-5C28,10.7,25.301,8,22,8z"/>
+  <path fill="#FFFFFF" id="path15" d="M22,8h-1c-0.549,0-1,0.451-1,1v2c0,0.551,0.451,1,1,1h1c1.084,0,2,0.916,2,2v5c0,1.084-0.916,2-2,2H8   c-1.084,0-2-0.916-2-2v-5c0-1.084,0.916-2,2-2h4v3l6-5l-6-5v3H8c-3.301,0-6,2.7-6,6v5c0,3.301,2.699,6,6,6h14c3.301,0,6-2.699,6-6   v-5C28,10.7,25.301,8,22,8z"/>
+ </g>
+ <g style="font-style:normal;font-weight:normal;font-size:11.25px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#cccccc;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" id="text4149">
+  <path style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:17.5px;font-family:'Nokia Pure';-inkscape-font-specification:'Nokia Pure Bold';fill:#cccccc;fill-opacity:1" id="path4154" d="m 18.761771,17.206886 -2.717285,1.580811 -0.777588,-1.520996 4.093018,-2.435303 1.418457,0 0,12.415771 -2.016602,0 0,-10.040283 z"/>
+ </g>
+</svg>

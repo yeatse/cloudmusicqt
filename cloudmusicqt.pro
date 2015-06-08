@@ -20,7 +20,8 @@ HEADERS += \
     musicdownloader.h \
     musicdownloaddatabase.h \
     musicdownloadmodel.h \
-    lyricloader.h
+    lyricloader.h \
+    backgroundimageprovider.h
 
 SOURCES += main.cpp \
     qmlapi.cpp \
@@ -32,7 +33,8 @@ SOURCES += main.cpp \
     musicdownloader.cpp \
     musicdownloaddatabase.cpp \
     musicdownloadmodel.cpp \
-    lyricloader.cpp
+    lyricloader.cpp \
+    backgroundimageprovider.cpp
 
 include(qjson/qjson.pri)
 DEFINES += QJSON_MAKEDLL
@@ -42,11 +44,28 @@ TRANSLATIONS += i18n/cloudmusicqt_zh.ts
 folder_symbian3.source = qml/cloudmusicqt
 folder_symbian3.target = qml
 
+folder_harmattan.source = qml/harmattan
+folder_harmattan.target = qml
+
 folder_js.source = qml/js
 folder_js.target = qml
 
 simulator {
-    DEPLOYMENTFOLDERS = folder_symbian3 folder_js
+    DEPLOYMENTFOLDERS = folder_harmattan folder_js
+}
+
+contains(MEEGO_EDITION,harmattan) {
+    DEFINES += Q_OS_HARMATTAN
+    DEPLOYMENTFOLDERS += folder_harmattan folder_js
+
+    OTHER_FILES += \
+        qtc_packaging/debian_harmattan/rules \
+        qtc_packaging/debian_harmattan/README \
+        qtc_packaging/debian_harmattan/manifest.aegis \
+        qtc_packaging/debian_harmattan/copyright \
+        qtc_packaging/debian_harmattan/control \
+        qtc_packaging/debian_harmattan/compat \
+        qtc_packaging/debian_harmattan/changelog
 }
 
 symbian {
