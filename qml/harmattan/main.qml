@@ -11,10 +11,22 @@ PageStackWindow {
     id: app
 
     platformStyle: PageStackWindowStyle {
-
+        Image {
+            id: backgroundImage
+            asynchronous: true
+            fillMode: Image.PreserveAspectCrop
+            source: "gfx/index_daily_ban1.jpg"//player.coverImageUrl
+            visible: false
+//            onStatusChanged: if (status == Image.Ready) bgProvider.refresh(backgroundImage)
+            onStatusChanged: {
+                if (status == Image.Ready) {
+                    bgProvider.refresh(backgroundImage)
+                }
+            }
+        }
     }
 
-    initialPage: MainPage {}
+//    initialPage: MainPage {}
 
     QtObject {
         id: internal
@@ -99,14 +111,6 @@ PageStackWindow {
         }
     }
 
-    Connections {
-        target: platformPopupManager
-        onPopupStackDepthChanged: {
-            if (platformPopupManager.popupStackDepth == 0)
-                app.focus = true
-        }
-    }
-
     CloudMusicUser {
         id: user
     }
@@ -116,43 +120,14 @@ PageStackWindow {
         onTriggered: Qt.quit()
     }
 
-    VolumeIndicator {
-        id: volumeIndicator
-
-        function initVolume() {
-            if (deviceInfo.voiceRingtoneVolume == 0) {
-                saveVolumeListener.target = null
-                volumeIndicator.volume = 0
-            }
-            else {
-                volumeIndicator.volume = qmlApi.getVolume()
-                saveVolumeListener.target = volumeIndicator
-            }
-        }
-
-        function startTracking() {
-            saveVolumeListener.target = volumeIndicator
-        }
-
-        Connections {
-            id: saveVolumeListener
-            target: null
-            onVolumeChanged: qmlApi.saveVolume(volumeIndicator.volume)
-        }
-
-        DeviceInfo {
-            id: deviceInfo
-            monitorCurrentProfileChanges: true
-            onCurrentProfileChanged: volumeIndicator.initVolume()
-        }
-    }
-
     InfoBanner {
         id: infoBanner
 
+        y: 36
+
         function showMessage(msg) {
             infoBanner.text = msg
-            infoBanner.open()
+            infoBanner.show()
         }
 
         function showDevelopingMsg() {
@@ -160,35 +135,26 @@ PageStackWindow {
         }
     }
 
-    PlayerPage {
-        id: player
-    }
+//    PlayerPage {
+//        id: player
+//    }
 
-    BlurredItem {
-        id: background
-        z: -1
-        anchors.fill: parent
-        source: backgroundImage.status == Image.Ready ? backgroundImage : null
-        onHeightChanged: refresh()
+//    BlurredItem {
+//        id: background
+//        z: -1
+//        anchors.fill: parent
+//        source: backgroundImage.status == Image.Ready ? backgroundImage : null
+//        onHeightChanged: refresh()
 
-        Image {
-            id: backgroundImage
-            anchors.fill: parent
-            asynchronous: true
-            fillMode: Image.PreserveAspectCrop
-            source: player.coverImageUrl
-            visible: false
-        }
-    }
-
-    Keys.onPressed: {
-//        if (event.key == Qt.Key_Menu) qmlApi.takeScreenShot()
-    }
-
-    Keys.onVolumeUpPressed: volumeIndicator.volumeUp()
-    Keys.onVolumeDownPressed: volumeIndicator.volumeDown()
-    Keys.onUpPressed: volumeIndicator.volumeUp()
-    Keys.onDownPressed: volumeIndicator.volumeDown()
+//        Image {
+//            id: backgroundImage
+//            anchors.fill: parent
+//            asynchronous: true
+//            fillMode: Image.PreserveAspectCrop
+//            source: player.coverImageUrl
+//            visible: false
+//        }
+//    }
 
     Component.onCompleted: internal.initialize()
 }

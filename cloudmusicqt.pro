@@ -20,8 +20,7 @@ HEADERS += \
     musicdownloader.h \
     musicdownloaddatabase.h \
     musicdownloadmodel.h \
-    lyricloader.h \
-    backgroundimageprovider.h
+    lyricloader.h
 
 SOURCES += main.cpp \
     qmlapi.cpp \
@@ -33,8 +32,7 @@ SOURCES += main.cpp \
     musicdownloader.cpp \
     musicdownloaddatabase.cpp \
     musicdownloadmodel.cpp \
-    lyricloader.cpp \
-    backgroundimageprovider.cpp
+    lyricloader.cpp
 
 include(qjson/qjson.pri)
 DEFINES += QJSON_MAKEDLL
@@ -51,12 +49,24 @@ folder_js.source = qml/js
 folder_js.target = qml
 
 simulator {
-    DEPLOYMENTFOLDERS = folder_harmattan folder_js
+    DEFINES += SIMULATE_HARMATTAN
+    DEPLOYMENTFOLDERS = folder_js
+    contains(DEFINES, SIMULATE_HARMATTAN) {
+        DEPLOYMENTFOLDERS += folder_harmattan
+        HEADERS += harmattanbackgroundprovider.h
+        SOURCES += harmattanbackgroundprovider.cpp
+    }
+    else {
+        DEPLOYMENTFOLDERS += folder_symbian3
+    }
 }
 
 contains(MEEGO_EDITION,harmattan) {
     DEFINES += Q_OS_HARMATTAN
     DEPLOYMENTFOLDERS += folder_harmattan folder_js
+
+    HEADERS += harmattanbackgroundprovider.h
+    SOURCES += harmattanbackgroundprovider.cpp
 
     OTHER_FILES += \
         qtc_packaging/debian_harmattan/rules \
