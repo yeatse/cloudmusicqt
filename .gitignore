@@ -34,3 +34,4 @@ ABLD.BAT
 # debian-es
 *.changes
 *.deb
+/cloudmusicqt
