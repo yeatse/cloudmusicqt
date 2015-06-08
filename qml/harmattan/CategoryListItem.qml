@@ -1,5 +1,5 @@
 import QtQuick 1.1
-import com.nokia.symbian 1.1
+import "UIConstants.js" as UI
 
 ListItemFrame {
     id: root
@@ -8,13 +8,13 @@ ListItemFrame {
     property alias title: titleText.text
     property alias subTitle: subTitleText.text
 
-    implicitHeight: platformStyle.graphicSizeLarge + platformStyle.paddingLarge
+    implicitHeight: UI.LIST_ITEM_HEIGHT_DEFAULT + UI.PADDING_LARGE
 
     Image {
         id: icon
         anchors {
             left: parent.left; top: parent.top; bottom: parent.bottom
-            margins: platformStyle.paddingLarge
+            margins: UI.PADDING_LARGE
         }
         width: height
         sourceSize { width: width; height: height }
@@ -22,25 +22,25 @@ ListItemFrame {
 
     Column {
         anchors {
-            left: icon.right; leftMargin: platformStyle.paddingMedium
+            left: icon.right; leftMargin: UI.PADDING_MEDIUM
             right: parent.right
             verticalCenter: parent.verticalCenter
         }
-        spacing: platformStyle.paddingSmall
+        spacing: UI.PADDING_SMALL
 
         Text {
             id: titleText
             width: parent.width
-            font.pixelSize: platformStyle.fontSizeLarge
-            color: platformStyle.colorNormalLight
+            font.pixelSize: UI.FONT_LARGE
+            color: UI.COLOR_INVERTED_FOREGROUND
             elide: Text.ElideRight
         }
 
         Text {
             id: subTitleText
             width: parent.width
-            font.pixelSize: platformStyle.fontSizeSmall
-            color: platformStyle.colorNormalMid
+            font.pixelSize: UI.FONT_SMALL
+            color: UI.COLOR_INVERTED_SECONDARY_FOREGROUND
             elide: Text.ElideRight
         }
     }

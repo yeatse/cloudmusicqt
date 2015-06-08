@@ -1,5 +1,5 @@
 import QtQuick 1.1
-import com.nokia.symbian 1.1
+import com.nokia.meego 1.0
 import QtWebKit 1.0
 import "../js/api.js" as Api
 
@@ -9,8 +9,8 @@ Page {
     orientationLock: PageOrientation.LockPortrait
 
     tools: ToolBarLayout {
-        ToolButton {
-            iconSource: "toolbar-back"
+        ToolIcon {
+            platformIconId: "toolbar-back"
             onClicked: pageStack.pop()
         }
     }
@@ -44,8 +44,6 @@ Page {
                     }
                 }
             }
-
-            Component.onDestruction: app.forceActiveFocus()
         }
     }
 

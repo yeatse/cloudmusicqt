@@ -1,8 +1,9 @@
 import QtQuick 1.1
-import com.nokia.symbian 1.1
+import com.nokia.meego 1.0
 import com.yeatse.cloudmusic 1.0
 
 import "../js/api.js" as Api
+import "./UIConstants.js" as UI
 
 Page {
     id: page
@@ -32,22 +33,22 @@ Page {
     }
 
     tools: ToolBarLayout {
-        ToolButton {
-            iconSource: "toolbar-back"
+        ToolIcon {
+            platformIconId: "toolbar-back"
             onClicked: pageStack.pop()
         }
-        ToolButton {
+        ToolIcon {
             id: subscribeBtn
             enabled: false
             iconSource: subscribed ? "gfx/btn_loved.svg" : "gfx/btn_love.svg"
             onClicked: subscribePlaylist(!subscribed)
         }
-        ToolButton {
+        ToolIcon {
             iconSource: "gfx/instant_messenger_chat.svg"
             enabled: commentId != ""
             onClicked: pageStack.push(Qt.resolvedUrl("CommentPage.qml"), {commentId: commentId})
         }
-        ToolButton {
+        ToolIcon {
             iconSource: "gfx/logo_icon.png"
             onClicked: player.bringToFront()
         }
@@ -123,22 +124,22 @@ Page {
         model: ListModel { id: listModel }
         header: Column {
             width: listView.width
-            spacing: platformStyle.paddingLarge
+            spacing: UI.PADDING_LARGE
             ViewHeader {
                 title: "歌单"
                 Button {
                     anchors {
                         right: parent.right; verticalCenter: parent.verticalCenter
-                        rightMargin: platformStyle.paddingLarge
+                        rightMargin: UI.PADDING_LARGE
                     }
-                    width: height
+                    platformStyle: ButtonStyle { buttonWidth: buttonHeight }
                     iconSource: "gfx/download.svg"
                     enabled: listView.count > 0
                     onClicked: dlConfirmer.open()
                 }
             }
             Item {
-                anchors { left: parent.left; right: parent.right; margins: platformStyle.paddingLarge }
+                anchors { left: parent.left; right: parent.right; margins: UI.PADDING_LARGE }
                 height: width / 480 * 222
                 visible: fetcher.loading || !fetcher.dataValid
                 BusyIndicator {
@@ -147,13 +148,14 @@ Page {
                 }
                 Button {
                     anchors.centerIn: parent
-                    iconSource: privateStyle.toolBarIconPath("toolbar-refresh")
+                    platformStyle: ButtonStyle { buttonWidth: buttonHeight }
+                    iconSource: "image://theme/icon-m-toolbar-refresh-white"
                     visible: !fetcher.loading && !fetcher.dataValid
                     onClicked: fetcher.loadPlayList(listId)
                 }
             }
             Item {
-                anchors { left: parent.left; right: parent.right; margins: platformStyle.paddingLarge }
+                anchors { left: parent.left; right: parent.right; margins: UI.PADDING_LARGE }
                 height: width / 480 * 222
                 visible: !fetcher.loading && fetcher.dataValid
                 Image {
@@ -163,37 +165,44 @@ Page {
                     source: coverImageUrl
                     sourceSize { width: width; height: height }
                 }
-                ListItemText {
+                Label {
                     id: titleText
                     anchors {
-                        left: coverImage.right; leftMargin: platformStyle.paddingMedium
-                        top: parent.top; topMargin: platformStyle.paddingSmall
+                        left: coverImage.right; leftMargin: UI.PADDING_MEDIUM
+                        top: parent.top; topMargin: UI.PADDING_SMALL
                         right: parent.right
+                    }
+                    platformStyle: LabelStyle {
+                        fontPixelSize: UI.FONT_LARGE
                     }
                     wrapMode: Text.Wrap
                     maximumLineCount: 3
                     text: name
                 }
-                ListItemText {
+                Label {
                     anchors {
                         left: titleText.left; top: titleText.bottom
-                        topMargin: platformStyle.paddingLarge
+                        topMargin: UI.PADDING_LARGE
                     }
-                    role: "SubTitle"
-                    color: platformStyle.colorNormalLight
+                    platformStyle: LabelStyle {
+                        fontPixelSize: UI.FONT_SMALL
+                    }
                     text: "By " + author
                 }
-                ListItemText {
+                Label {
                     anchors {
                         left: titleText.left; bottom: parent.bottom
-                        bottomMargin: platformStyle.paddingSmall
+                        bottomMargin: UI.PADDING_SMALL
                     }
-                    role: "SubTitle"
+                    platformStyle: LabelStyle {
+                        fontPixelSize: UI.FONT_SMALL
+                        textColor: UI.COLOR_INVERTED_SECONDARY_FOREGROUND
+                    }
                     text: "收藏%1 评论%2 分享%3".arg(favoriteCount).arg(commentCount).arg(shareCount)
                 }
             }
             Button {
-                anchors { left: parent.left; right: parent.right; margins: platformStyle.paddingLarge }
+                anchors { left: parent.left; right: parent.right; margins: UI.PADDING_LARGE }
                 text: "播放全部"
                 enabled: !fetcher.loading && fetcher.count > 0
                 onClicked: player.playFetcher(fetcher.type, {listId: listId}, fetcher, -1)

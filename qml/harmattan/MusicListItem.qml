@@ -1,5 +1,5 @@
 import QtQuick 1.1
-import com.nokia.symbian 1.1
+import "./UIConstants.js" as UI
 
 ListItemFrame {
     id: root
@@ -25,12 +25,12 @@ ListItemFrame {
 
     Text {
         id: indexText
-        width: platformStyle.graphicSizeMedium
+        width: UI.LIST_ITEM_HEIGHT_SMALL
         height: parent.height
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
-        font.pixelSize: platformStyle.fontSizeLarge
-        color: platformStyle.colorNormalMid
+        font.pixelSize: UI.FONT_LARGE
+        color: UI.COLOR_INVERTED_SECONDARY_FOREGROUND
         text: index + 1
         visible: showIndex
     }
@@ -38,25 +38,25 @@ ListItemFrame {
     Column {
         anchors {
             left: showIndex ? indexText.right : parent.left;
-            leftMargin: showIndex ? 0 : platformStyle.paddingLarge
+            leftMargin: showIndex ? 0 : UI.PADDING_LARGE
             right: parent.right
             verticalCenter: parent.verticalCenter
         }
-        spacing: platformStyle.paddingSmall
+        spacing: UI.PADDING_SMALL
 
         Text {
             id: titleText
             width: parent.width
-            font.pixelSize: platformStyle.fontSizeLarge
-            color: platformStyle.colorNormalLight
+            font.pixelSize: UI.FONT_LARGE
+            color: UI.COLOR_INVERTED_FOREGROUND
             elide: Text.ElideRight
         }
 
         Text {
             id: subTitleText
             width: parent.width
-            font.pixelSize: platformStyle.fontSizeSmall
-            color: platformStyle.colorNormalMid
+            font.pixelSize: UI.FONT_SMALL
+            color: UI.COLOR_INVERTED_SECONDARY_FOREGROUND
             elide: Text.ElideRight
         }
     }

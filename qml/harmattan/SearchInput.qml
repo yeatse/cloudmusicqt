@@ -1,5 +1,7 @@
 import QtQuick 1.1
-import com.nokia.symbian 1.1
+import com.nokia.meego 1.0
+
+import "./UIConstants.js" as UI
 
 TextField {
     id: root
@@ -13,8 +15,10 @@ TextField {
         inputTimer.restart()
     }
 
-    platformLeftMargin: searchIcon.width + platformStyle.paddingMedium
-    platformRightMargin: clearButton.width + platformStyle.paddingMedium
+    platformStyle: TextFieldStyle {
+        paddingLeft: searchIcon.width + UI.PADDING_XLARGE
+        paddingRight: clearButton.width + UI.PADDING_XLARGE
+    }
 
     Timer {
         id: inputTimer
@@ -25,10 +29,10 @@ TextField {
     Image {
         id: searchIcon
         anchors { left: parent.left; leftMargin: platformStyle.paddingMedium; verticalCenter: parent.verticalCenter }
-        height: platformStyle.graphicSizeSmall
-        width: platformStyle.graphicSizeSmall
+        height: UI.SIZE_ICON_DEFAULT
+        width: UI.SIZE_ICON_DEFAULT
         sourceSize { width: width; height: height }
-        source: privateStyle.toolBarIconPath("toolbar-search", true)
+        source: "image://theme/icon-m-common-search"
         visible: !busy
     }
 
@@ -40,19 +44,17 @@ TextField {
 
     Item {
         id: clearButton
-        anchors { right: parent.right; rightMargin: platformStyle.paddingMedium; verticalCenter: parent.verticalCenter }
-        height: platformStyle.graphicSizeSmall
-        width: platformStyle.graphicSizeSmall
+        anchors { right: parent.right; rightMargin: UI.PADDING_MEDIUM; verticalCenter: parent.verticalCenter }
+        height: UI.SIZE_ICON_DEFAULT
+        width: UI.SIZE_ICON_DEFAULT
         opacity: root.activeFocus ? 1 : 0
         Behavior on opacity {
             NumberAnimation { duration: 100 }
         }
         Image {
             anchors.fill: parent
-            sourceSize { width: platformStyle.graphicSizeSmall; height: platformStyle.graphicSizeSmall }
-            source: privateStyle.imagePath(clearMouseArea.pressed ? "qtg_graf_textfield_clear_pressed"
-                                                                  : "qtg_graf_textfield_clear_normal",
-                                                                    root.platformInverted)
+            sourceSize { width: UI.SIZE_ICON_DEFAULT; height: UI.SIZE_ICON_DEFAULT }
+            source: "image://theme/icon-m-input-clear"
         }
         MouseArea {
             id: clearMouseArea

@@ -1,13 +1,13 @@
 import QtQuick 1.1
-import com.nokia.symbian 1.1
+import "./UIConstants.js" as UI
 
 Item {
     id: root
 
     property string title
 
-    implicitWidth: screen.width
-    implicitHeight: privateStyle.tabBarHeightPortrait
+    implicitWidth: ListView.view ? ListView.view.width : parent.width
+    implicitHeight: UI.HEADER_DEFAULT_HEIGHT_PORTRAIT
     z: 1
 
     Image {
@@ -15,7 +15,7 @@ Item {
         anchors {
             left: parent.left
             verticalCenter: parent.verticalCenter
-            leftMargin: platformStyle.paddingLarge + platformStyle.paddingSmall
+            leftMargin: UI.PADDING_DOUBLE
         }
         source: title == "" ? "gfx/desk2_logo.png" : "gfx/desk_logo.png"
     }
@@ -23,10 +23,10 @@ Item {
     Text {
         anchors {
             left: icon.right
-            leftMargin: platformStyle.paddingMedium
+            leftMargin: UI.PADDING_MEDIUM
             verticalCenter: parent.verticalCenter
         }
-        font.pixelSize: platformStyle.fontSizeLarge + 2
+        font.pixelSize: UI.FONT_LARGE + 2
         color: "white"
         text: root.title
     }
@@ -35,6 +35,6 @@ Item {
         anchors.bottom: parent.bottom
         width: parent.width
         height: 1
-        color: platformStyle.colorDisabledMid
+        color: UI.COLOR_INVERTED_BACKGROUND
     }
 }

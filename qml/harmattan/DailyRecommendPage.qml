@@ -1,6 +1,8 @@
 import QtQuick 1.1
-import com.nokia.symbian 1.1
+import com.nokia.meego 1.0
 import com.yeatse.cloudmusic 1.0
+
+import "UIConstants.js" as UI
 
 Page {
     id: page
@@ -8,11 +10,11 @@ Page {
     orientationLock: PageOrientation.LockPortrait
 
     tools: ToolBarLayout {
-        ToolButton {
-            iconSource: "toolbar-back"
+        ToolIcon {
+            platformIconId: "toolbar-back"
             onClicked: pageStack.pop()
         }
-        ToolButton {
+        ToolIcon {
             iconSource: "gfx/logo_icon.png"
             onClicked: player.bringToFront()
         }
@@ -50,38 +52,38 @@ Page {
                 title: "每日歌曲推荐"
             }
             Image {
-                anchors { left: parent.left; right: parent.right; margins: platformStyle.paddingLarge }
+                anchors { left: parent.left; right: parent.right; margins: UI.PADDING_LARGE }
                 height: width / 480 * 222
                 sourceSize { width: width; height: height }
                 source: new Date().getDate() % 2 ? "gfx/index_daily_ban1.jpg" : "gfx/index_daily_ban2.jpg"
                 Text {
                     anchors {
-                        left: parent.left; leftMargin: platformStyle.paddingLarge
-                        bottom: parent.bottom; bottomMargin: platformStyle.paddingSmall
+                        left: parent.left; leftMargin: UI.PADDING_LARGE
+                        bottom: parent.bottom; bottomMargin: UI.PADDING_SMALL
                     }
-                    font.pixelSize: platformStyle.fontSizeSmall
+                    font.pixelSize: UI.FONT_SMALL
                     color: "white"
                     text: "根据你的音乐口味生成，每天6:00更新"
                 }
                 Rectangle {
                     anchors {
-                        left: parent.left; leftMargin: platformStyle.paddingLarge
-                        top: parent.top; topMargin: platformStyle.paddingLarge * 2
+                        left: parent.left; leftMargin: UI.PADDING_LARGE
+                        top: parent.top; topMargin: UI.PADDING_XLARGE
                     }
-                    width: platformStyle.graphicSizeLarge
-                    height: platformStyle.graphicSizeLarge
+                    width: UI.LIST_ITEM_HEIGHT_DEFAULT
+                    height: UI.LIST_ITEM_HEIGHT_DEFAULT
                     color: "white"
                     Column {
                         anchors.centerIn: parent
                         Text {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            font.pixelSize: platformStyle.fontSizeSmall
+                            font.pixelSize: UI.FONT_SMALL
                             color: "#e54242"
                             text: Qt.formatDate(new Date(), "dddd")
                         }
                         Text {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            font.pixelSize: platformStyle.graphicSizeLarge / 2
+                            font.pixelSize: UI.LIST_ITEM_HEIGHT_DEFAULT / 2
                             color: "black"
                             text: new Date().getDate()
                         }
@@ -89,7 +91,7 @@ Page {
                 }
             }
             Button {
-                anchors { left: parent.left; right: parent.right; margins: platformStyle.paddingLarge }
+                anchors { left: parent.left; right: parent.right; margins: UI.PADDING_LARGE }
                 text: "播放全部"
                 enabled: !fetcher.loading && fetcher.count > 0
                 onClicked: player.playFetcher(fetcher.type, null, fetcher, -1)

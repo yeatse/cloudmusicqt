@@ -1,7 +1,6 @@
 import QtQuick 1.1
-import com.nokia.meego 1.1
+import com.nokia.meego 1.0
 import com.nokia.extras 1.1
-import QtMobility.systeminfo 1.2
 import com.yeatse.cloudmusic 1.0
 
 import "../js/api.js" as Api
@@ -13,40 +12,34 @@ PageStackWindow {
     platformStyle: PageStackWindowStyle {
         Image {
             id: backgroundImage
+            width: app.inPortrait ? screen.displayHeight : screen.displayWidth
+            height: app.inPortrait ? screen.displayWidth : screen.displayHeight
             asynchronous: true
             fillMode: Image.PreserveAspectCrop
-            source: "gfx/index_daily_ban1.jpg"//player.coverImageUrl
+            source: player.coverImageUrl
             visible: false
-//            onStatusChanged: if (status == Image.Ready) bgProvider.refresh(backgroundImage)
-            onStatusChanged: {
-                if (status == Image.Ready) {
-                    bgProvider.refresh(backgroundImage)
-                }
-            }
+            onStatusChanged: if (status == Image.Ready) {
+                                 bgProvider.refresh(backgroundImage)
+                                 platformStyle.background = "image://appBackground"
+                             }
         }
     }
 
-//    initialPage: MainPage {}
+    initialPage: MainPage {}
 
     QtObject {
         id: internal
 
         function initialize() {
             Api.qmlApi = qmlApi
-            volumeIndicator.initVolume()
             resetBackground()
             user.initialize()
             checkForUpdate()
         }
 
         function resetBackground() {
-            for (var i = 0; i < app.children.length; i++) {
-                var child = app.children[i]
-                if (child != volumeIndicator && child.hasOwnProperty("color")) {
-                    child.z = -2
-                    break
-                }
-            }
+            theme.inverted = true
+            pageStack.toolBar.platformStyle.background = ""
         }
 
         function checkForUpdate() {
@@ -64,7 +57,7 @@ PageStackWindow {
                             }
                         }
                     }
-            xhr.open("GET", "http://yeatse.com/cloudmusicqt/symbian.ver")
+            xhr.open("GET", "http://yeatse.com/cloudmusicqt/harmattan.ver")
             xhr.send(null)
         }
 
@@ -135,26 +128,9 @@ PageStackWindow {
         }
     }
 
-//    PlayerPage {
-//        id: player
-//    }
-
-//    BlurredItem {
-//        id: background
-//        z: -1
-//        anchors.fill: parent
-//        source: backgroundImage.status == Image.Ready ? backgroundImage : null
-//        onHeightChanged: refresh()
-
-//        Image {
-//            id: backgroundImage
-//            anchors.fill: parent
-//            asynchronous: true
-//            fillMode: Image.PreserveAspectCrop
-//            source: player.coverImageUrl
-//            visible: false
-//        }
-//    }
+    PlayerPage {
+        id: player
+    }
 
     Component.onCompleted: internal.initialize()
 }

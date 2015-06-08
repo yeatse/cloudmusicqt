@@ -1,9 +1,10 @@
 import QtQuick 1.1
-import com.nokia.symbian 1.1
+import com.nokia.meego 1.1
 import QtMultimediaKit 1.1
 import com.yeatse.cloudmusic 1.0
 import "../js/util.js" as Util
 import "../js/api.js" as Api
+import "./UIConstants.js" as UI
 
 Page {
     id: page
@@ -167,9 +168,37 @@ Page {
 
     orientationLock: PageOrientation.LockPortrait
 
-    onStatusChanged: {
-        if (status == PageStatus.Active)
-            app.focus = true
+    tools: ToolBarLayout {
+        ToolIcon {
+            platformIconId: "toolbar-back"
+            onClicked: pageStack.pop()
+        }
+        ToolIcon {
+            visible: callerType != ""
+                     && callerType != callerTypeDJ
+                     && callerType != callerTypePrivateFM
+                     && callerType != callerTypeSingle
+            iconSource: {
+                if (playMode == playModeSingleMusic)
+                    return "gfx/repeat_single.svg"
+                else if (playMode == playModeShuffle)
+                    return "gfx/shuffle.svg"
+                else
+                    return "gfx/repeat.svg"
+            }
+            onClicked: {
+                if (playMode == playModeShuffle)
+                    playMode = playModeSingleMusic
+                else if (playMode == playModeSingleMusic)
+                    playMode = playModeNormal
+                else
+                    playMode = playModeShuffle
+            }
+        }
+        ToolIcon {
+            platformIconId: "toolbar-menu"
+            onClicked: menu.open()
+        }
     }
 
     Connections {
@@ -376,241 +405,183 @@ Page {
         onTriggered: audio.handleTimeOut()
     }
 
-    Flickable {
-        id: view
-        anchors.fill: parent
-        contentWidth: parent.width
-        contentHeight: Math.max(screen.height - privateStyle.statusBarHeight,
-                                Math.min(screen.width, screen.height) + 200)
-        boundsBehavior: Flickable.StopAtBounds
+    Flipable {
+        id: coverFlip
+        property bool lrcVisible: false
+        anchors {
+            top: parent.top; topMargin: UI.LIST_ITEM_HEIGHT_SMALL
+            horizontalCenter: parent.horizontalCenter
+        }
+        width: parent.width - anchors.topMargin * 2
+        height: width
+        front: Image {
+            id: coverImage
+            anchors.fill: parent
+            fillMode: Image.PreserveAspectCrop
+            source: coverImageUrl
 
-        Flipable {
-            id: coverFlip
-            property bool lrcVisible: false
-            anchors {
-                top: parent.top; topMargin: platformStyle.graphicSizeSmall
-                horizontalCenter: parent.horizontalCenter
+            Image {
+                visible: coverImage.status != Image.Ready
+                anchors.fill: coverImage
+                sourceSize { width: width; height: height }
+                source: "gfx/default_play_cover.png"
             }
-            width: Math.min(screen.width, screen.height) - platformStyle.graphicSizeSmall * 2
-            height: width
-            front: Image {
-                id: coverImage
+
+            MouseArea {
                 anchors.fill: parent
-                fillMode: Image.PreserveAspectCrop
-                source: coverImageUrl
-
-                Image {
-                    visible: coverImage.status != Image.Ready
-                    anchors.fill: coverImage
-                    sourceSize { width: width; height: height }
-                    source: "gfx/default_play_cover.png"
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    enabled: currentMusic != null
-                    onClicked: coverFlip.lrcVisible = true
-                }
+                enabled: currentMusic != null
+                onClicked: coverFlip.lrcVisible = true
             }
-            back: LyricItem {
-                id: lyricItem
-                anchors.fill: parent
-                onClicked: coverFlip.lrcVisible = false
+        }
+        back: LyricItem {
+            id: lyricItem
+            anchors.fill: parent
+            onClicked: coverFlip.lrcVisible = false
+        }
+        transform: Rotation {
+            id: flipRotation
+            origin { x: coverFlip.width / 2; y: coverFlip.height / 2 }
+            axis { x: 0; y: 1; z: 0 }
+            angle: 0
+        }
+        states: [
+            State {
+                name: "back"
+                PropertyChanges { target: flipRotation; angle: 180 }
+                when: coverFlip.lrcVisible
             }
-            transform: Rotation {
-                id: flipRotation
-                origin { x: coverFlip.width / 2; y: coverFlip.height / 2 }
-                axis { x: 0; y: 1; z: 0 }
-                angle: 0
-            }
-            states: [
-                State {
-                    name: "back"
-                    PropertyChanges { target: flipRotation; angle: 180 }
-                    when: coverFlip.lrcVisible
-                }
-            ]
-            transitions: [
-                Transition {
-                    to: ""
+        ]
+        transitions: [
+            Transition {
+                to: ""
+                NumberAnimation { property: "angle" }
+            },
+            Transition {
+                to: "back"
+                SequentialAnimation {
                     NumberAnimation { property: "angle" }
-                },
-                Transition {
-                    to: "back"
-                    SequentialAnimation {
-                        NumberAnimation { property: "angle" }
-                        ScriptAction { script: lyricItem.loadLyric(currentMusic.musicId) }
-                    }
+                    ScriptAction { script: lyricItem.loadLyric(currentMusic.musicId) }
                 }
-            ]
-        }
+            }
+        ]
+    }
 
-        ProgressBar {
-            id: progressBar
-            anchors {
-                left: coverFlip.left; right: coverFlip.right
-                top: coverFlip.bottom
-            }
-            value: audio.position / audio.duration * 1.0
-            indeterminate: audio.status == Audio.Loading || audio.status == Audio.Stalled
-                           || (!audio.playing && musicFetcher.loading)
+    ProgressBar {
+        id: progressBar
+        anchors {
+            left: coverFlip.left; right: coverFlip.right
+            top: coverFlip.bottom
         }
+        value: audio.position / audio.duration * 1.0
+        indeterminate: audio.status == Audio.Loading || audio.status == Audio.Stalled
+                       || (!audio.playing && musicFetcher.loading)
+    }
 
-        Text {
-            id: positionLabel
-            anchors {
-                left: progressBar.left; top: progressBar.bottom
-            }
-            font.pixelSize: platformStyle.fontSizeSmall
-            color: platformStyle.colorNormalMid
-            text: Util.formatTime(audio.position)
+    Text {
+        id: positionLabel
+        anchors {
+            left: progressBar.left; top: progressBar.bottom
         }
+        font.pixelSize: UI.FONT_SMALL
+        color: UI.COLOR_INVERTED_SECONDARY_FOREGROUND
+        text: Util.formatTime(audio.position)
+    }
 
-        Text {
-            anchors {
-                right: progressBar.right; top: progressBar.bottom
-            }
-            font.pixelSize: platformStyle.fontSizeSmall
-            color: platformStyle.colorNormalMid
-            text: currentMusic ? Util.formatTime(currentMusic.musicDuration) : "00:00"
+    Text {
+        anchors {
+            right: progressBar.right; top: progressBar.bottom
         }
-        Item {
-            anchors {
-                top: positionLabel.bottom; bottom: controlButton.top
-                left: parent.left; right: parent.right
-            }
-            Column {
-                anchors.verticalCenter: parent.verticalCenter
+        font.pixelSize: UI.FONT_SMALL
+        color: UI.COLOR_INVERTED_SECONDARY_FOREGROUND
+        text: currentMusic ? Util.formatTime(currentMusic.musicDuration) : "00:00"
+    }
+    Item {
+        anchors {
+            top: positionLabel.bottom; bottom: controlButton.top
+            left: parent.left; right: parent.right
+        }
+        Column {
+            anchors.verticalCenter: parent.verticalCenter
+            width: parent.width
+            spacing: UI.PADDING_MEDIUM
+            Text {
                 width: parent.width
-                spacing: platformStyle.paddingMedium
-                Text {
-                    width: parent.width
-                    horizontalAlignment: Text.AlignHCenter
-                    wrapMode: Text.Wrap
-                    elide: Text.ElideRight
-                    maximumLineCount: 2
-                    color: platformStyle.colorNormalLight
-                    font.pixelSize: platformStyle.fontSizeLarge
-                    text: currentMusic ? currentMusic.musicName : ""
-                }
-                Text {
-                    width: parent.width
-                    horizontalAlignment: Text.AlignHCenter
-                    wrapMode: Text.Wrap
-                    elide: Text.ElideRight
-                    maximumLineCount: 2
-                    color: platformStyle.colorNormalMid
-                    font.pixelSize: platformStyle.fontSizeSmall
-                    font.weight: Font.Light
-                    text: currentMusic ? currentMusic.artistsDisplayName : ""
-                }
+                horizontalAlignment: Text.AlignHCenter
+                wrapMode: Text.Wrap
+                elide: Text.ElideRight
+                maximumLineCount: 2
+                color: UI.COLOR_INVERTED_FOREGROUND
+                font.pixelSize: UI.FONT_LARGE
+                text: currentMusic ? currentMusic.musicName : ""
             }
-        }
-
-        Row {
-            id: controlButton
-
-            anchors {
-                bottom: parent.bottom; bottomMargin: privateStyle.toolBarHeightPortrait
-                horizontalCenter: parent.horizontalCenter
-            }
-
-            spacing: 12
-
-            ControlButton {
-                buttonName: collector.loading || isMusicCollecting
-                            ? "loved_dis" : isMusicCollected ? "loved" : "love"
-                visible: callerType != callerTypeDJ && currentMusic != null
-                enabled: !(collector.loading || isMusicCollecting)
-                onClicked: {
-                    if (callerType == callerTypePrivateFM)
-                        collectCurrentRadio(!isMusicCollected)
-                    else if (isMusicCollected)
-                        collector.removeCollection(currentMusic.musicId)
-                    else
-                        collector.collectMusic(currentMusic.musicId)
-                }
-            }
-
-            ControlButton {
-                buttonName: audio.playing && !audio.paused ? "pause" : "play"
-                onClicked: {
-                    if (audio.playing) {
-                        if (audio.paused) audio.play()
-                        else audio.pause()
-                    }
-                    else if (musicFetcher.count > 0) {
-                        var index = Math.min(Math.max(currentIndex, 0), musicFetcher.count - 1)
-                        if (audio.status == Audio.Loading)
-                            audio.waitingIndex = index
-                        else
-                            audio.setCurrentMusic(index)
-                    }
-                    else {
-                        playPrivateFM()
-                    }
-                }
-            }
-
-            ControlButton {
-                buttonName: "next"
-                enabled: audio.status != Audio.Loading
-                onClicked: audio.playNextMusic()
-            }
-
-            ControlButton {
-                visible: callerType == callerTypePrivateFM && currentMusic != null
-                buttonName: "del"
-                enabled: audio.status != Audio.Loading
-                onClicked: {
-                    addCurrentRadioToTrash()
-                    audio.playNextMusic()
-                }
+            Text {
+                width: parent.width
+                horizontalAlignment: Text.AlignHCenter
+                wrapMode: Text.Wrap
+                elide: Text.ElideRight
+                maximumLineCount: 2
+                color: UI.COLOR_INVERTED_SECONDARY_FOREGROUND
+                font.pixelSize: UI.FONT_SMALL
+                font.weight: Font.Light
+                text: currentMusic ? currentMusic.artistsDisplayName : ""
             }
         }
     }
 
-    ToolBar {
-        id: toolBar
-        y: screen.height - privateStyle.statusBarHeight - toolBar.height
-        tools: ToolBarLayout {
-            ToolButton {
-                iconSource: "toolbar-back"
-                onClicked: pageStack.pop()
-            }
-            ToolButton {
-                visible: callerType != ""
-                         && callerType != callerTypeDJ
-                         && callerType != callerTypePrivateFM
-                         && callerType != callerTypeSingle
-                iconSource: {
-                    if (playMode == playModeSingleMusic)
-                        return "gfx/repeat_single.svg"
-                    else if (playMode == playModeShuffle)
-                        return "gfx/shuffle.svg"
-                    else
-                        return "gfx/repeat.svg"
-                }
-                onClicked: {
-                    if (playMode == playModeShuffle)
-                        playMode = playModeSingleMusic
-                    else if (playMode == playModeSingleMusic)
-                        playMode = playModeNormal
-                    else
-                        playMode = playModeShuffle
-                }
-            }
-            ToolButton {
-                iconSource: "toolbar-menu"
-                onClicked: menu.open()
+    Row {
+        id: controlButton
+
+        anchors { bottom: parent.bottom; horizontalCenter: parent.horizontalCenter }
+        spacing: 36
+
+        ControlButton {
+            buttonName: collector.loading || isMusicCollecting
+                        ? "loved_dis" : isMusicCollected ? "loved" : "love"
+            visible: callerType != callerTypeDJ && currentMusic != null
+            enabled: !(collector.loading || isMusicCollecting)
+            onClicked: {
+                if (callerType == callerTypePrivateFM)
+                    collectCurrentRadio(!isMusicCollected)
+                else if (isMusicCollected)
+                    collector.removeCollection(currentMusic.musicId)
+                else
+                    collector.collectMusic(currentMusic.musicId)
             }
         }
-        Component.onCompleted: {
-            for (var i = 0; i < children.length; i++) {
-                if (children[i].hasOwnProperty("source")) {
-                    children[i].source = ""
-                    break
+
+        ControlButton {
+            buttonName: audio.playing && !audio.paused ? "pause" : "play"
+            onClicked: {
+                if (audio.playing) {
+                    if (audio.paused) audio.play()
+                    else audio.pause()
                 }
+                else if (musicFetcher.count > 0) {
+                    var index = Math.min(Math.max(currentIndex, 0), musicFetcher.count - 1)
+                    if (audio.status == Audio.Loading)
+                        audio.waitingIndex = index
+                    else
+                        audio.setCurrentMusic(index)
+                }
+                else {
+                    playPrivateFM()
+                }
+            }
+        }
+
+        ControlButton {
+            buttonName: "next"
+            enabled: audio.status != Audio.Loading
+            onClicked: audio.playNextMusic()
+        }
+
+        ControlButton {
+            visible: callerType == callerTypePrivateFM && currentMusic != null
+            buttonName: "del"
+            enabled: audio.status != Audio.Loading
+            onClicked: {
+                addCurrentRadioToTrash()
+                audio.playNextMusic()
             }
         }
     }

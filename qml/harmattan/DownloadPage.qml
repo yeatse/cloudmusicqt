@@ -1,8 +1,9 @@
 import QtQuick 1.1
-import com.nokia.symbian 1.1
+import com.nokia.meego 1.0
 import com.yeatse.cloudmusic 1.0
 
 import "../js/util.js" as Util
+import "./UIConstants.js" as UI
 
 Page {
     id: page
@@ -17,24 +18,24 @@ Page {
     objectName: player.callerTypeDownload
 
     tools: ToolBarLayout {
-        ToolButton {
-            iconSource: "toolbar-back"
+        ToolIcon {
+            platformIconId: "toolbar-back"
             onClicked: pageStack.pop()
         }
         ButtonRow {
             id: buttonRow
-            ToolButton {
+            TabButton {
                 id: toolButton1
                 iconSource: "gfx/download.svg"
                 onClicked: dlModel.dataType = MusicDownloadModel.ProcessingData
             }
-            ToolButton {
+            TabButton {
                 id: toolButton2
                 iconSource: "gfx/ok.svg"
                 onClicked: dlModel.dataType = MusicDownloadModel.CompletedData
             }
         }
-        ToolButton {
+        ToolIcon {
             iconSource: "gfx/logo_icon.png"
             onClicked: player.bringToFront()
         }
@@ -60,10 +61,12 @@ Page {
                 id: ctrlBtn
                 anchors {
                     right: parent.right; verticalCenter: parent.verticalCenter
-                    rightMargin: platformStyle.paddingLarge
+                    rightMargin: UI.PADDING_LARGE
                 }
-                width: height
-                iconSource: privateStyle.toolBarIconPath("toolbar-mediacontrol-play")
+                platformStyle: ButtonStyle {
+                    buttonWidth: buttonHeight
+                }
+                iconSource: "image://theme/icon-m-toolbar-mediacontrol-play-white"
                 enabled: listView.count > 0
                 onClicked: player.playDownloader(dlModel, "")
                 states: [
@@ -71,7 +74,7 @@ Page {
                         name: "CanPause"
                         PropertyChanges {
                             target: ctrlBtn
-                            iconSource: privateStyle.toolBarIconPath("toolbar-mediacontrol-pause")
+                            iconSource: "image://theme/icon-m-toolbar-mediacontrol-pause-white"
                             onClicked: downloader.pause()
                         }
                     },
@@ -79,7 +82,7 @@ Page {
                         name: "CanRestart"
                         PropertyChanges {
                             target: ctrlBtn
-                            iconSource: privateStyle.toolBarIconPath("toolbar-refresh")
+                            iconSource: "image://theme/icon-m-toolbar-redo-white"
                             onClicked: {
                                 downloader.resume()
                                 downloader.retry()

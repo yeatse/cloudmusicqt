@@ -1,7 +1,8 @@
 import QtQuick 1.1
-import com.nokia.symbian 1.1
+import com.nokia.meego 1.0
 
 import "../js/api.js" as Api
+import "UIConstants.js" as UI
 
 Page {
     id: page
@@ -79,8 +80,8 @@ Page {
     }
 
     tools: ToolBarLayout {
-        ToolButton {
-            iconSource: "toolbar-back"
+        ToolIcon {
+            platformIconId: "toolbar-back"
             onClicked: pageStack.pop()
         }
     }
@@ -106,16 +107,16 @@ Page {
             }
         }
         delegate: ListItemFrame {
-            implicitHeight: contentCol.height + platformStyle.paddingLarge * 2
+            implicitHeight: contentCol.height + UI.PADDING_XLARGE
 
             Image {
                 id: avatarImg
                 anchors {
                     left: parent.left; top: parent.top;
-                    margins: platformStyle.paddingLarge
+                    margins: UI.PADDING_LARGE
                 }
-                width: platformStyle.graphicSizeMedium
-                height: platformStyle.graphicSizeMedium
+                width: UI.LIST_ITEM_HEIGHT_SMALL
+                height: UI.LIST_ITEM_HEIGHT_SMALL
                 sourceSize { width: width; height: height }
                 source: avatar
             }
@@ -123,11 +124,11 @@ Page {
             Column {
                 id: contentCol
                 anchors {
-                    left: avatarImg.right; leftMargin: platformStyle.paddingMedium
-                    top: parent.top; topMargin: platformStyle.paddingLarge
-                    right: parent.right; rightMargin: platformStyle.paddingLarge
+                    left: avatarImg.right; leftMargin: UI.PADDING_MEDIUM
+                    top: parent.top; topMargin: UI.PADDING_LARGE
+                    right: parent.right; rightMargin: UI.PADDING_LARGE
                 }
-                spacing: platformStyle.paddingMedium
+                spacing: UI.PADDING_MEDIUM
 
                 Label {
                     width: parent.width
@@ -141,7 +142,7 @@ Page {
                         id: refComp
                         Rectangle {
                             width: contentCol.width
-                            height: refLabel.height + platformStyle.paddingLarge * 2
+                            height: refLabel.height + UI.PADDING_XLARGE
                             color: "#803a3a3a"
                             border.width: 1
                             border.color: "#801f1f1f"
@@ -149,7 +150,7 @@ Page {
                                 id: refLabel
                                 anchors {
                                     left: parent.left; top: parent.top
-                                    right: parent.right; margins: platformStyle.paddingLarge
+                                    right: parent.right; margins: UI.PADDING_LARGE
                                 }
                                 wrapMode: Text.Wrap
                                 text: refContent
@@ -158,8 +159,11 @@ Page {
                     }
                 }
 
-                ListItemText {
-                    role: "SubTitle"
+                Label {
+                    platformStyle: LabelStyle {
+                        fontPixelSize: UI.FONT_SMALL
+                        textColor: UI.COLOR_INVERTED_SECONDARY_FOREGROUND
+                    }
                     text: time
                 }
             }
@@ -167,7 +171,7 @@ Page {
         footer: Item {
             id: footerItem
             width: ListView.view.width
-            height: visible ? platformStyle.graphicSizeLarge : 0
+            height: visible ? UI.LIST_ITEM_HEIGHT_DEFAULT : 0
             visible: page.hasMore && listModel.count > 0
             BusyIndicator {
                 anchors.centerIn: parent
@@ -188,8 +192,7 @@ Page {
     ScrollDecorator { flickableItem: view }
 
     BusyIndicator {
-        width: platformStyle.graphicSizeLarge
-        height: platformStyle.graphicSizeLarge
+        platformStyle: BusyIndicatorStyle { size: "large" }
         anchors.centerIn: parent
         visible: page.loading && listModel.count == 0
         running: visible

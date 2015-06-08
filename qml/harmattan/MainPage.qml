@@ -1,8 +1,9 @@
 import QtQuick 1.1
-import com.nokia.symbian 1.1
+import com.nokia.meego 1.0
 import com.yeatse.cloudmusic 1.0
 
 import "../js/api.js" as Api
+import "./UIConstants.js" as UI
 
 Page {
     id: mainPage
@@ -28,23 +29,14 @@ Page {
     }
 
     tools: ToolBarLayout {
-        ToolButton {
-            iconSource: "toolbar-back"
-            onClicked: quitTimer.running ? Qt.quit() : quitTimer.start()
-            Timer {
-                id: quitTimer
-                interval: infoBanner.timeout
-                onRunningChanged: if (running) infoBanner.showMessage("再按一次退出")
-            }
-        }
 
-        ToolButton {
-            iconSource: "toolbar-search"
+        ToolIcon {
+            platformIconId: "toolbar-search"
             onClicked: pageStack.push(Qt.resolvedUrl("SearchPage.qml"))
         }
 
-        ToolButton {
-            iconSource: "toolbar-menu"
+        ToolIcon {
+            platformIconId: "toolbar-menu"
             onClicked: mainMenu.open()
         }
     }
@@ -119,13 +111,13 @@ Page {
                 Text {
                     anchors {
                         left: parent.left; top: parent.top; bottom: parent.bottom
-                        margins: platformStyle.paddingLarge
+                        margins: UI.PADDING_LARGE
                     }
                     width: height
                     color: "white"
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
-                    font.pixelSize: platformStyle.fontSizeMedium
+                    font.pixelSize: UI.FONT_DEFAULT
                     text: Qt.formatDateTime(new Date(), "dddd\nM.d")
                 }
 
@@ -135,12 +127,15 @@ Page {
 
             Item {
                 width: parent.width
-                height: platformStyle.graphicSizeLarge
+                height: UI.LIST_ITEM_HEIGHT_DEFAULT
 
-                ListItemText {
+                Label {
                     anchors {
-                        left: parent.left; leftMargin: platformStyle.paddingLarge
+                        left: parent.left; leftMargin: UI.PADDING_LARGE
                         verticalCenter: parent.verticalCenter
+                    }
+                    platformStyle: LabelStyle {
+                        fontPixelSize: UI.FONT_LARGE
                     }
                     text: "热门推荐"
                 }
@@ -151,15 +146,15 @@ Page {
                 property int itemWidth: (width - spacing) / columns
                 anchors {
                     left: parent.left; right: parent.right
-                    margins: platformStyle.paddingLarge
+                    margins: UI.PADDING_LARGE
                 }
-                spacing: platformStyle.paddingLarge
+                spacing: UI.PADDING_LARGE
                 columns: 2
                 Repeater {
                     model: ListModel { id: hotSpotModel }
                     Item {
                         width: grid.itemWidth
-                        height: width + platformStyle.graphicSizeLarge
+                        height: width + UI.LIST_ITEM_HEIGHT_DEFAULT
                         Image {
                             id: coverImage
                             width: parent.width
@@ -168,7 +163,7 @@ Page {
                             Loader {
                                 anchors {
                                     left: parent.left; bottom: parent.bottom
-                                    bottomMargin: platformStyle.paddingSmall
+                                    bottomMargin: UI.PADDING_SMALL
                                 }
                                 sourceComponent: type == 0 ? djProgramIcon : undefined
                                 Component {
@@ -178,12 +173,12 @@ Page {
                             }
                         }
                         Text {
-                            anchors { top: coverImage.bottom; topMargin: platformStyle.paddingMedium }
+                            anchors { top: coverImage.bottom; topMargin: UI.PADDING_MEDIUM }
                             width: parent.width
                             elide: Text.ElideRight
                             wrapMode: Text.Wrap
                             maximumLineCount: 2
-                            font.pixelSize: platformStyle.fontSizeMedium
+                            font.pixelSize: UI.FONT_DEFAULT
                             color: "white"
                             text: name
                         }
@@ -212,6 +207,7 @@ Page {
                     running: loading
                     visible: loading
                 }
+
                 Button {
                     anchors.centerIn: parent
                     iconSource: privateStyle.toolBarIconPath("toolbar-refresh")

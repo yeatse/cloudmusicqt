@@ -1,8 +1,9 @@
 import QtQuick 1.1
-import com.nokia.symbian 1.1
+import com.nokia.meego 1.0
 import com.yeatse.cloudmusic 1.0
 
 import "../js/util.js" as Util
+import "./UIConstants.js" as UI
 
 Item {
     id: root
@@ -52,9 +53,9 @@ Item {
         anchors.fill: parent
         clip: true
         model: loader.lyric
-        spacing: platformStyle.paddingLarge
-        preferredHighlightBegin: (height - 20) / 2
-        preferredHighlightEnd: (height + 20) / 2
+        spacing: UI.PADDING_LARGE
+        preferredHighlightBegin: (height - 24) / 2
+        preferredHighlightEnd: (height + 24) / 2
         highlightRangeMode: ListView.StrictlyEnforceRange
         highlightMoveDuration: 800
         highlightMoveSpeed: -1
@@ -64,10 +65,10 @@ Item {
             width: view.width
             wrapMode: Text.Wrap
             horizontalAlignment: Text.AlignHCenter
-            font.pixelSize: platformStyle.fontSizeLarge
-            font.family: platformStyle.fontFamilyRegular
-            color: ListView.isCurrentItem ? platformStyle.colorNormalLight
-                                          : platformStyle.colorNormalMid
+            font.pixelSize: UI.FONT_LARGE
+            font.family: UI.FONT_FAMILY
+            color: ListView.isCurrentItem ? UI.COLOR_INVERTED_FOREGROUND
+                                          : UI.COLOR_INVERTED_SECONDARY_FOREGROUND
         }
         MouseArea {
             anchors.fill: parent
@@ -77,8 +78,9 @@ Item {
 
     BusyIndicator {
         anchors.centerIn: parent
-        width: platformStyle.graphicSizeLarge
-        height: platformStyle.graphicSizeLarge
+        platformStyle: BusyIndicatorStyle {
+            size: "large"
+        }
         visible: loader.loading
         running: true
     }

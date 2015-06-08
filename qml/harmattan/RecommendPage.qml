@@ -1,8 +1,9 @@
 import QtQuick 1.1
-import com.nokia.symbian 1.1
+import com.nokia.meego 1.0
 import com.yeatse.cloudmusic 1.0
 
 import "../js/api.js" as Api
+import "./UIConstants.js" as UI
 
 Page {
     id: page
@@ -12,16 +13,16 @@ Page {
     orientationLock: PageOrientation.LockPortrait
 
     tools: ToolBarLayout {
-        ToolButton {
-            iconSource: "toolbar-back"
+        ToolIcon {
+            platformIconId: "toolbar-back"
             onClicked: pageStack.pop()
         }
-        ToolButton {
-            iconSource: "toolbar-refresh"
+        ToolIcon {
+            platformIconId: "toolbar-refresh"
             enabled: !loading
             onClicked: getRecommendList()
         }
-        ToolButton {
+        ToolIcon {
             iconSource: "gfx/logo_icon.png"
             onClicked: player.bringToFront()
         }
@@ -59,13 +60,13 @@ Page {
                 Text {
                     anchors {
                         left: parent.left; top: parent.top; bottom: parent.bottom
-                        margins: platformStyle.paddingLarge
+                        margins: UI.PADDING_LARGE
                     }
                     width: height
                     color: "white"
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
-                    font.pixelSize: platformStyle.fontSizeMedium
+                    font.pixelSize: UI.FONT_DEFAULT
                     text: Qt.formatDateTime(new Date(), "dddd\nM.d")
                 }
 

@@ -1,6 +1,8 @@
 import QtQuick 1.1
-import com.nokia.symbian 1.1
+import com.nokia.meego 1.0
 import com.yeatse.cloudmusic 1.0
+
+import "./UIConstants.js" as UI
 
 Page {
     id: page
@@ -8,19 +10,16 @@ Page {
     orientationLock: PageOrientation.LockPortrait
 
     tools: ToolBarLayout {
-        ToolButton {
-            iconSource: "toolbar-back"
+        ToolIcon {
+            platformIconId: "toolbar-back"
             onClicked: pageStack.pop()
         }
     }
 
     onStatusChanged: {
-        if (status == PageStatus.Deactivating) {
-            app.forceActiveFocus()
-        }
-        else if (status == PageStatus.Active) {
-            searchInput.forceActiveFocus()
-            searchInput.openSoftwareInputPanel()
+        if (status == PageStatus.Active) {
+            searchInput.focus = true
+            searchInput.platformOpenSoftwareInputPanel()
         }
     }
 
@@ -46,15 +45,15 @@ Page {
 
     Item {
         id: viewHeader
-        implicitWidth: screen.width
-        implicitHeight: platformStyle.graphicSizeLarge
+        implicitWidth: parent.width
+        implicitHeight: UI.HEADER_DEFAULT_HEIGHT_PORTRAIT
         z: 1
 
         SearchInput {
             id: searchInput
             anchors {
                 left: parent.left; right: parent.right
-                margins: platformStyle.paddingLarge
+                margins: UI.PADDING_LARGE
                 verticalCenter: parent.verticalCenter
             }
             busy: fetcher.loading
@@ -79,7 +78,7 @@ Page {
             anchors.bottom: parent.bottom
             width: parent.width
             height: 1
-            color: platformStyle.colorDisabledMid
+            color: UI.COLOR_INVERTED_BACKGROUND
         }
     }
 

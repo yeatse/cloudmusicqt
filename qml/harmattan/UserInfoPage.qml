@@ -1,7 +1,8 @@
 import QtQuick 1.1
-import com.nokia.symbian 1.1
+import com.nokia.meego 1.0
 
 import "../js/api.js" as Api
+import "./UIConstants.js" as UI
 
 Page {
     id: page
@@ -77,11 +78,11 @@ Page {
     }
 
     tools: ToolBarLayout {
-        ToolButton {
-            iconSource: "toolbar-back"
+        ToolIcon {
+            platformIconId: "toolbar-back"
             onClicked: pageStack.pop()
         }
-        ToolButton {
+        ToolIcon {
             iconSource: "gfx/logo_icon.png"
             onClicked: player.bringToFront()
         }
@@ -93,12 +94,12 @@ Page {
         model: ListModel { id: listModel }
         header: Column {
             width: listView.width
-            spacing: platformStyle.paddingLarge
+            spacing: UI.PADDING_LARGE
             ViewHeader {
                 title: "个人主页"
             }
             Item {
-                anchors { left: parent.left; right: parent.right; margins: platformStyle.paddingLarge }
+                anchors { left: parent.left; right: parent.right; margins: UI.PADDING_LARGE }
                 height: 120
                 visible: loadingUserData || !userDataValid
                 BusyIndicator {
@@ -107,13 +108,14 @@ Page {
                 }
                 Button {
                     anchors.centerIn: parent
-                    iconSource: privateStyle.toolBarIconPath("toolbar-refresh")
+                    platformStyle: ButtonStyle { buttonWidth: buttonHeight }
+                    iconSource: "image://theme/icon-m-toolbar-refresh-white"
                     visible: !loadingUserData && !userDataValid
                     onClicked: loadUserData()
                 }
             }
             Item {
-                anchors { left: parent.left; right: parent.right; margins: platformStyle.paddingLarge }
+                anchors { left: parent.left; right: parent.right; margins: UI.PADDING_LARGE }
                 height: 120
                 visible: !loadingUserData && userDataValid
                 Image {
@@ -124,31 +126,40 @@ Page {
                     source: avatarImageUrl
                     sourceSize { width: width; height: height }
                 }
-                ListItemText {
+                Label {
                     id: nameLabel
                     anchors {
-                        left: avatarImage.right; leftMargin: platformStyle.paddingMedium
-                        top: parent.top; topMargin: platformStyle.paddingSmall
+                        left: avatarImage.right; leftMargin: UI.PADDING_MEDIUM
+                        top: parent.top; topMargin: UI.PADDING_SMALL
+                    }
+                    platformStyle: LabelStyle {
+                        fontPixelSize: UI.FONT_LARGE
                     }
                     text: userName
                 }
-                ListItemText {
+                Label {
                     id: introLabel
                     anchors {
                         left: nameLabel.left; top: nameLabel.bottom; right: parent.right
-                        topMargin: platformStyle.paddingSmall
+                        topMargin: UI.PADDING_SMALL
                     }
-                    role: "SubTitle"
+                    platformStyle: LabelStyle {
+                        fontPixelSize: UI.FONT_SMALL
+                        textColor: UI.COLOR_INVERTED_SECONDARY_FOREGROUND
+                    }
                     wrapMode: Text.Wrap
                     maximumLineCount: 2
                     text: signature
                 }
-                ListItemText {
+                Label {
                     anchors {
                         left: nameLabel.left; bottom: parent.bottom
-                        bottomMargin: platformStyle.paddingSmall
+                        bottomMargin: UI.PADDING_SMALL
                     }
-                    role: "SubTitle"
+                    platformStyle: LabelStyle {
+                        fontPixelSize: UI.FONT_SMALL
+                        textColor: UI.COLOR_INVERTED_SECONDARY_FOREGROUND
+                    }
                     text: "动态%1 关注%2 粉丝%3".arg(eventCount).arg(followingCount).arg(followerCount)
                 }
             }
@@ -157,9 +168,10 @@ Page {
         section {
             property: "group"
             delegate: ListHeading {
-                ListItemText {
+                Label {
                     anchors.fill: parent.paddingItem
-                    role: "Heading"
+                    horizontalAlignment: Text.AlignRight
+                    verticalAlignment: Text.AlignVCenter
                     text: section == 0 ? "创建的歌单%1".arg(page.playlistCreated)
                                        : "收藏的歌单%1".arg(page.playlistSubscribed)
                 }

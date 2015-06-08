@@ -1,6 +1,6 @@
 import QtQuick 1.1
-import com.nokia.meego 1.1
-import "UIConstants.js" as UI
+import com.nokia.meego 1.0
+import "./UIConstants.js" as UI
 
 Page {
     id: page
@@ -8,8 +8,8 @@ Page {
     orientationLock: PageOrientation.LockPortrait
 
     tools: ToolBarLayout {
-        ToolButton {
-            iconSource: "toolbar-back"
+        ToolIcon {
+            platformIconId: "toolbar-back"
             onClicked: pageStack.pop()
         }
     }
@@ -18,19 +18,19 @@ Page {
         anchors {
             horizontalCenter: parent.horizontalCenter
             top: parent.top
-            topMargin: app.inPortrait ? platformStyle.graphicSizeLarge : 0
+            topMargin: UI.LIST_ITEM_HEIGHT_SMALL
         }
-        spacing: platformStyle.paddingMedium
+        spacing: UI.PADDING_MEDIUM
 
         Image {
             anchors.horizontalCenter: parent.horizontalCenter
-            sourceSize.width: platformStyle.graphicSizeLarge * 2.5
-            sourceSize.height: platformStyle.graphicSizeLarge * 2.5
+            sourceSize.width: UI.LIST_ITEM_HEIGHT_DEFAULT * 2.5
+            sourceSize.height: UI.LIST_ITEM_HEIGHT_DEFAULT * 2.5
             source: "gfx/cloudmusicqt.svg"
         }
 
         Label {
-            font.pixelSize: platformStyle.fontSizeLarge + 4
+            platformStyle: LabelStyle { fontPixelSize: UI.FONT_XLARGE }
             anchors.horizontalCenter: parent.horizontalCenter
             text: "网易云音乐测试版"
         }
@@ -38,7 +38,8 @@ Page {
         Label {
             anchors.horizontalCenter: parent.horizontalCenter
             platformStyle: LabelStyle {
-
+                fontPixelSize: UI.FONT_SMALL
+                textColor: UI.COLOR_INVERTED_SECONDARY_FOREGROUND
             }
             text: "Version " + appVersion
         }
@@ -47,11 +48,14 @@ Page {
     Column {
         anchors {
             horizontalCenter: parent.horizontalCenter
-            bottom: parent.bottom; bottomMargin: platformStyle.paddingMedium
+            bottom: parent.bottom; bottomMargin: UI.PADDING_MEDIUM
         }
-        visible: screen.height > 360
-        ListItemText {
-            role: "SubTitle"
+        visible: app.inPortrait
+        Label {
+            platformStyle: LabelStyle {
+                fontPixelSize: UI.FONT_SMALL
+                textColor: UI.COLOR_INVERTED_SECONDARY_FOREGROUND
+            }
             text: "Designed & built by Yeatse, 2015"
         }
     }

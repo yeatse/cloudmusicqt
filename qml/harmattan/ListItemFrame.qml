@@ -1,5 +1,5 @@
 import QtQuick 1.1
-import com.nokia.symbian 1.1
+import "UIConstants.js" as UI
 
 Item {
     id: root
@@ -7,8 +7,8 @@ Item {
     signal clicked
     signal pressAndHold
 
-    implicitWidth: screen.width
-    implicitHeight: platformStyle.graphicSizeLarge
+    implicitWidth: ListView.view ? ListView.view.width : parent.width
+    implicitHeight: UI.LIST_ITEM_HEIGHT_DEFAULT
 
     MouseArea {
         anchors.fill: parent
