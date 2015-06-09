@@ -196,7 +196,7 @@ Page {
             }
         }
         ToolIcon {
-            platformIconId: "toolbar-menu"
+            platformIconId: "toolbar-view-menu"
             onClicked: menu.open()
         }
     }
@@ -244,8 +244,6 @@ Page {
 
         property int waitingIndex: -1
         property int retryCount: 0
-
-        volume: volumeIndicator.volume / 100
 
         function setCurrentMusic(index) {
             waitingIndex = -1

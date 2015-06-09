@@ -46,8 +46,6 @@ QPixmap HarmattanBackgroundProvider::requestPixmap(const QString &id, QSize *siz
 
 void HarmattanBackgroundProvider::refresh(QDeclarativeItem *item)
 {
-    if (mSource != item) {
-        mSource = item;
-        mPixmap = QPixmap();
-    }
+    mSource = item;
+    mPixmap = QPixmap();
 }

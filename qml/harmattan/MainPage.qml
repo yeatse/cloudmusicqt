@@ -36,7 +36,7 @@ Page {
         }
 
         ToolIcon {
-            platformIconId: "toolbar-menu"
+            platformIconId: "toolbar-view-menu"
             onClicked: mainMenu.open()
         }
     }
@@ -76,11 +76,12 @@ Page {
 
             ViewHeader {
                 id: viewHeader
-                ToolButton {
+                Button {
                     anchors {
-                        right: parent.right
+                        right: parent.right; rightMargin: UI.PADDING_LARGE
                         verticalCenter: parent.verticalCenter
                     }
+                    platformStyle: ButtonStyle { buttonWidth: buttonHeight }
                     iconSource: "gfx/contacts.svg"
                     onClicked: user.loggedIn ? pageStack.push(Qt.resolvedUrl("UserInfoPage.qml"),{userId: qmlApi.getUserId()})
                                              : pageStack.push(Qt.resolvedUrl("LoginPage.qml"))
@@ -210,7 +211,8 @@ Page {
 
                 Button {
                     anchors.centerIn: parent
-                    iconSource: privateStyle.toolBarIconPath("toolbar-refresh")
+                    platformStyle: ButtonStyle { buttonWidth: buttonHeight }
+                    iconSource: "image://theme/icon-m-toolbar-refresh-white"
                     visible: !loading && hotSpotModel.count == 0
                     onClicked: getHotSpotList()
                 }

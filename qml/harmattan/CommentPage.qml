@@ -98,9 +98,10 @@ Page {
         section {
             property: "type"
             delegate: ListHeading {
-                ListItemText {
+                Label {
                     anchors.fill: parent.paddingItem
-                    role: "Heading"
+                    horizontalAlignment: Text.AlignRight
+                    verticalAlignment: Text.AlignVCenter
                     text: section == 0 ? "最新评论(%1)".arg(page.totalCount)
                                        : "热门评论(%1)".arg(page.hotCount)
                 }
