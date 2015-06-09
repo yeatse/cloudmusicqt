@@ -28,7 +28,7 @@ TextField {
 
     Image {
         id: searchIcon
-        anchors { left: parent.left; leftMargin: platformStyle.paddingMedium; verticalCenter: parent.verticalCenter }
+        anchors { left: parent.left; leftMargin: UI.PADDING_MEDIUM; verticalCenter: parent.verticalCenter }
         height: UI.SIZE_ICON_DEFAULT
         width: UI.SIZE_ICON_DEFAULT
         sourceSize { width: width; height: height }

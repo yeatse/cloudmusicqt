@@ -44,6 +44,10 @@ Page {
                     }
                 }
             }
+
+            onStatusChanged: {
+                console.log(status)
+            }
         }
     }
 

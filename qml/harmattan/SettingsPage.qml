@@ -51,6 +51,7 @@ Page {
                         titleText: "设定程序关闭的时间"
                         acceptButtonText: "启动"
                         rejectButtonText: "关闭"
+                        fields: DateTime.Hours | DateTime.Minutes
                         Component.onCompleted: {
                             cdTimer.active = false
                             hour = Math.floor(cdTimer.timeLeft / 60)
@@ -68,7 +69,7 @@ Page {
                             if (status == DialogStatus.Closing)
                                 isClosing = true
                             else if (status == DialogStatus.Closed && isClosing)
-                                diag.destroy()
+                                diag.destroy(500)
                         }
                     }
                 }

@@ -10,6 +10,7 @@ PageStackWindow {
     id: app
 
     platformStyle: PageStackWindowStyle {
+        backgroundFillMode: Image.PreserveAspectCrop
         Image {
             id: backgroundImage
             width: app.inPortrait ? screen.displayHeight : screen.displayWidth
@@ -20,7 +21,7 @@ PageStackWindow {
             visible: false
             onStatusChanged: if (status == Image.Ready) {
                                  bgProvider.refresh(backgroundImage)
-                                 platformStyle.background = "image://appBackground"
+                                 platformStyle.background = "image://appBackground/" + Math.random()
                              }
         }
     }
@@ -39,7 +40,6 @@ PageStackWindow {
 
         function resetBackground() {
             theme.inverted = true
-            pageStack.toolBar.platformStyle.background = ""
         }
 
         function checkForUpdate() {
@@ -74,7 +74,7 @@ PageStackWindow {
                     if (status == DialogStatus.Closing)
                         closing = true
                     else if (status == DialogStatus.Closed && closing)
-                        dialog.destroy()
+                        dialog.destroy(500)
                 }
             }
         }
