@@ -360,6 +360,49 @@ Page {
             if (error == Audio.ResourceError || error == Audio.FormatError || error == Audio.AccessDenied)
                 playNextMusic()
         }
+
+        Component.onCompleted: {
+            if (Util.verNameToVerCode(qtVersion) <= 0x040800) {
+                audioVolumeFix.createObject(player)
+            }
+        }
+    }
+
+    Component {
+        id: audioVolumeFix
+        QtObject {
+            id: root
+
+            property Binding binding: Binding {
+                target: audio
+                property: "volume"
+                value: volumeIndicator.volume / 100
+                when: true
+            }
+
+            property Connections conn1: Connections {
+                target: audio
+                onStatusChanged: {
+                    if (audio.status == Audio.Loaded) {
+                        root.conn2.target = audio
+                    }
+                }
+            }
+
+            property Connections conn2: Connections {
+                target: audio
+                onPositionChanged: {
+                    root.conn2.target = null
+                    audio.volume = 1
+                    root.timer.start()
+                }
+            }
+
+            property Timer timer: Timer {
+                interval: 100
+                onTriggered: audio.volume = volumeIndicator.volume / 100
+            }
+        }
     }
 
     Connections {

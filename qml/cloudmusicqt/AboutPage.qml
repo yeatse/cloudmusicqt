@@ -37,7 +37,13 @@ Page {
         ListItemText {
             anchors.horizontalCenter: parent.horizontalCenter
             role: "SubTitle"
-            text: "Version " + appVersion
+            text: "软件版本号: " + appVersion
+        }
+
+        ListItemText {
+            anchors.horizontalCenter: parent.horizontalCenter
+            role: "SubTitle"
+            text: "Qt库版本号: " + qtVersion
         }
     }
 
