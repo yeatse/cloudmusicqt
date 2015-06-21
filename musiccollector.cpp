@@ -112,12 +112,17 @@ void MusicCollector::removeCollection(const QString &id)
 
 void MusicCollector::refresh()
 {
-    QString uid = UserConfig::Instance()->getSetting(UserConfig::KeyUserId).toString();
-    if (uid.isEmpty())
-        return;
-
     if (currentReply && currentReply->isRunning())
         currentReply->abort();
+
+    QString uid = UserConfig::Instance()->getSetting(UserConfig::KeyUserId).toString();
+    if (uid.isEmpty()) {
+        playlistId = 0;
+        nextOperation = OperationNone;
+        idList.clear();
+        emit dataChanged();
+        return;
+    }
 
     QUrl url(QString(ApiBaseUrl).append("/user/playlist/"));
     url.addEncodedQueryItem("offset", "0");

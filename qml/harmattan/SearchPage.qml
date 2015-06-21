@@ -4,23 +4,37 @@ import com.yeatse.cloudmusic 1.0
 
 import "./UIConstants.js" as UI
 
-Page {
+Sheet {
     id: page
 
-    orientationLock: PageOrientation.LockPortrait
+    acceptButtonText: "完成";
 
-    tools: ToolBarLayout {
-        ToolIcon {
-            platformIconId: "toolbar-back"
-            onClicked: pageStack.pop()
-        }
-    }
+    property bool _isClosing: false
 
     onStatusChanged: {
-        if (status == PageStatus.Active) {
+        if (status == DialogStatus.Open) {
             searchInput.focus = true
             searchInput.platformOpenSoftwareInputPanel()
         }
+        else if (status == DialogStatus.Closing) {
+            _isClosing = true
+        }
+        else if (status == DialogStatus.Closed && _isClosing) {
+            page.destroy(500)
+        }
+    }
+
+    Component.onCompleted: open()
+
+    title: Label {
+        platformStyle: LabelStyle {
+            fontPixelSize: UI.FONT_LARGE + 2
+        }
+        anchors {
+            left: parent.left; leftMargin: UI.PADDING_DOUBLE
+            verticalCenter: parent.verticalCenter
+        }
+        text: "搜索歌曲"
     }
 
     MusicFetcher {
@@ -43,63 +57,62 @@ Page {
         }
     }
 
-    Item {
-        id: viewHeader
-        implicitWidth: parent.width
-        implicitHeight: UI.HEADER_DEFAULT_HEIGHT_PORTRAIT
-        z: 1
-
-        SearchInput {
-            id: searchInput
-            anchors {
-                left: parent.left; right: parent.right
-                margins: UI.PADDING_LARGE
-                verticalCenter: parent.verticalCenter
-            }
-            busy: fetcher.loading
-            placeholderText: "搜索歌曲"
-            onTypeStopped: {
-                var searchText = text.trim()
-                if (fetcher.searchText == searchText)
-                    return
-
-                fetcher.searchText = searchText
-                if (searchText == "") {
-                    fetcher.reset()
-                    listModel.clear()
+    content: [
+        Item {
+            id: viewHeader
+            implicitWidth: parent.width
+            implicitHeight: UI.HEADER_DEFAULT_HEIGHT_PORTRAIT
+            SearchInput {
+                id: searchInput
+                anchors {
+                    left: parent.left; right: parent.right
+                    margins: UI.PADDING_LARGE
+                    verticalCenter: parent.verticalCenter
                 }
-                else {
-                    fetcher.searchSongs(searchText)
+                busy: fetcher.loading
+                placeholderText: "输入关键词"
+                onTypeStopped: {
+                    var searchText = text.trim()
+                    if (fetcher.searchText == searchText)
+                        return
+
+                    fetcher.searchText = searchText
+                    if (searchText == "") {
+                        fetcher.reset()
+                        listModel.clear()
+                    }
+                    else {
+                        fetcher.searchSongs(searchText)
+                    }
                 }
             }
+            Rectangle {
+                anchors.bottom: parent.bottom
+                width: parent.width
+                height: 1
+                color: UI.COLOR_INVERTED_BACKGROUND
+            }
+        },
+        ListView {
+            id: view
+            anchors { fill: parent; topMargin: viewHeader.height }
+            clip: true
+            model: ListModel { id: listModel }
+            delegate: MusicListItem {
+                title: name
+                subTitle: desc
+                active: player.currentMusic != null && player.currentMusic.musicId == musicId
+                onClicked: player.playSingleMusic(fetcher.dataAt(index))
+                onPressAndHold: contextMenu.init(index)
+            }
+        },
+        ScrollDecorator {
+            flickableItem: view
         }
-
-        Rectangle {
-            anchors.bottom: parent.bottom
-            width: parent.width
-            height: 1
-            color: UI.COLOR_INVERTED_BACKGROUND
-        }
-    }
-
-    ListView {
-        id: view
-        clip: true
-        anchors { fill: parent; topMargin: viewHeader.height }
-        model: ListModel { id: listModel }
-        delegate: MusicListItem {
-            title: name
-            subTitle: desc
-            active: player.currentMusic != null && player.currentMusic.musicId == musicId
-            onClicked: player.playSingleMusic(fetcher.dataAt(index))
-            onPressAndHold: contextMenu.init(index)
-        }
-    }
+    ]
 
     PlayListMenu {
         id: contextMenu
         fetcher: fetcher
     }
-
-    ScrollDecorator { flickableItem: view }
 }

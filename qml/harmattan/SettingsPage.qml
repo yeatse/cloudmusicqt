@@ -31,9 +31,13 @@ Page {
                     property string title: "下载目录"
                     property string subtitle: downloader.targetDir
                 }
-                onClicked: {
-                    var dir = qmlApi.selectFolder("选择文件夹:", downloader.targetDir)
-                    if (dir) downloader.targetDir = dir
+                onClicked: slDiagComp.createObject(page, {folder: downloader.targetDir});
+                Component {
+                    id: slDiagComp
+                    FolderSelector {
+                        id: diag
+                        onAccepted: downloader.targetDir = folder
+                    }
                 }
             }
             ListDelegate {

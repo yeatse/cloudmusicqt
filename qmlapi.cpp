@@ -52,6 +52,12 @@ void QmlApi::saveUserId(const QString &id)
     UserConfig::Instance()->setSetting(UserConfig::KeyUserId, id);
 }
 
+void QmlApi::logout()
+{
+    saveUserId(QString());
+    NetworkCookieJar::Instance()->clearCookies();
+}
+
 int QmlApi::getVolume()
 {
     return qBound(0, UserConfig::Instance()->getSetting(UserConfig::KeyVolume, 30).toInt(), 100);
@@ -158,6 +164,16 @@ bool QmlApi::isFileExists(const QString &fileName)
 bool QmlApi::removeFile(const QString &fileName)
 {
     return QFile::remove(fileName);
+}
+
+QString QmlApi::cleanPath(const QString &path)
+{
+    return QDir::cleanPath(path);
+}
+
+QString QmlApi::getHomePath() const
+{
+    return QDesktopServices::storageLocation(QDesktopServices::HomeLocation);
 }
 
 QString QmlApi::selectFolder(const QString &title, const QString &defaultDir)

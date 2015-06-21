@@ -139,11 +139,6 @@ Page {
         if (callerType != callerTypePrivateFM || currentMusic == null)
             return
 
-        if (!user.loggedIn) {
-            pageStack.push(Qt.resolvedUrl("LoginPage.qml"))
-            return
-        }
-
         var opt = { id: currentMusic.musicId, like: like, sec: Math.floor(audio.position / 1000) }
         var s = function() {
             isMusicCollected = like
@@ -178,13 +173,17 @@ Page {
                      && callerType != callerTypeDJ
                      && callerType != callerTypePrivateFM
                      && callerType != callerTypeSingle
-            iconSource: {
-                if (playMode == playModeSingleMusic)
-                    return "gfx/repeat_single.svg"
-                else if (playMode == playModeShuffle)
-                    return "gfx/shuffle.svg"
-                else
-                    return "gfx/repeat.svg"
+            platformIconId: playMode == playModeShuffle ? "toolbar-shuffle" : "toolbar-repeat"
+            Label {
+                anchors {
+                    bottom: parent.bottom; horizontalCenter: parent.horizontalCenter
+                    bottomMargin: 10; horizontalCenterOffset: 5
+                }
+                platformStyle: LabelStyle {
+                    fontPixelSize: UI.FONT_XXSMALL
+                }
+                visible: playMode == playModeSingleMusic
+                text: "1"
             }
             onClicked: {
                 if (playMode == playModeShuffle)
@@ -259,6 +258,7 @@ Page {
                 else
                     audio.source = currentMusic.getUrl(MusicInfo.LowQuality)
 
+                audio.position = 0
                 audio.play()
 
                 isMusicCollecting = false
@@ -273,9 +273,10 @@ Page {
                     lyricItem.loadLyric(currentMusic.musicId)
 
                 if (app.pageStack.currentPage != page || !Qt.application.active) {
-                    qmlApi.showNotification("网易云音乐",
-                                            "正在播放: %1 - %2".arg(currentMusic.artistsDisplayName).arg(currentMusic.musicName),
-                                            1)
+                    infoBanner.showMessage("正在播放: %1 - %2".arg(currentMusic.artistsDisplayName).arg(currentMusic.musicName))
+//                    qmlApi.showNotification("网易云音乐",
+//                                            "正在播放: %1 - %2".arg(currentMusic.artistsDisplayName).arg(currentMusic.musicName),
+//                                            1)
                 }
             }
         }
@@ -327,6 +328,7 @@ Page {
 
                     retryCount ++
                     audio.source = src
+                    audio.position = 0
                     audio.play()
                     return
                 }
@@ -384,7 +386,9 @@ Page {
 
         onError: {
             console.log("error occured:", debugError(), errorString, source)
-            if (error == Audio.ResourceError || error == Audio.FormatError || error == Audio.AccessDenied)
+            if (error == Audio.ResourceError)
+                audio.handleTimeOut()
+            else if (error == Audio.FormatError || error == Audio.AccessDenied)
                 playNextMusic()
         }
     }
@@ -399,7 +403,7 @@ Page {
 
     Timer {
         id: timeoutListener
-        interval: 3 * 1000
+        interval: 5 * 1000
         onTriggered: audio.handleTimeOut()
     }
 
@@ -407,7 +411,7 @@ Page {
         id: coverFlip
         property bool lrcVisible: false
         anchors {
-            top: parent.top; topMargin: UI.LIST_ITEM_HEIGHT_SMALL
+            top: parent.top; topMargin: 48
             horizontalCenter: parent.horizontalCenter
         }
         width: parent.width - anchors.topMargin * 2
@@ -538,6 +542,11 @@ Page {
             visible: callerType != callerTypeDJ && currentMusic != null
             enabled: !(collector.loading || isMusicCollecting)
             onClicked: {
+                if (!user.loggedIn) {
+                    pageStack.push(Qt.resolvedUrl("LoginPage.qml"))
+                    return
+                }
+
                 if (callerType == callerTypePrivateFM)
                     collectCurrentRadio(!isMusicCollected)
                 else if (isMusicCollected)

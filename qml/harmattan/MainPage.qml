@@ -11,6 +11,7 @@ Page {
     orientationLock: PageOrientation.LockPortrait
 
     property bool loading: false
+    property variant searchPageComp: null
 
     function getHotSpotList() {
         if (loading) return
@@ -29,12 +30,13 @@ Page {
     }
 
     tools: ToolBarLayout {
-
         ToolIcon {
             platformIconId: "toolbar-search"
-            onClicked: pageStack.push(Qt.resolvedUrl("SearchPage.qml"))
+            onClicked: {
+                searchPageComp = searchPageComp || Qt.createComponent("SearchPage.qml");
+                searchPageComp.createObject(mainPage);
+            }
         }
-
         ToolIcon {
             platformIconId: "toolbar-view-menu"
             onClicked: mainMenu.open()
@@ -76,13 +78,14 @@ Page {
 
             ViewHeader {
                 id: viewHeader
+                title: "网易云音乐"
                 Button {
                     anchors {
                         right: parent.right; rightMargin: UI.PADDING_LARGE
                         verticalCenter: parent.verticalCenter
                     }
                     platformStyle: ButtonStyle { buttonWidth: buttonHeight }
-                    iconSource: "gfx/contacts.svg"
+                    iconSource: "image://theme/icon-m-toolbar-contact-white"
                     onClicked: user.loggedIn ? pageStack.push(Qt.resolvedUrl("UserInfoPage.qml"),{userId: qmlApi.getUserId()})
                                              : pageStack.push(Qt.resolvedUrl("LoginPage.qml"))
                 }
@@ -160,7 +163,7 @@ Page {
                             id: coverImage
                             width: parent.width
                             height: parent.width
-                            source: Api.getScaledImageUrl(picUrl, 160)
+                            source: Api.getScaledImageUrl(picUrl, 240)
                             Loader {
                                 anchors {
                                     left: parent.left; bottom: parent.bottom

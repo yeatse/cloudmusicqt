@@ -13,8 +13,8 @@ QtObject {
         var uid = qmlApi.getUserId()
         loggedIn = token != "" && uid != ""
         userChanged()
+        collector.refresh()
         if (loggedIn) {
-            collector.refresh()
             refreshUserToken(token)
         }
     }
@@ -28,5 +28,10 @@ QtObject {
             }
         }
         Api.refreshToken(token, new Function(), f)
+    }
+
+    function logout() {
+        qmlApi.logout()
+        initialize()
     }
 }

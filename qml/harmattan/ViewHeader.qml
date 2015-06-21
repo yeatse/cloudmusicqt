@@ -17,7 +17,7 @@ Item {
             verticalCenter: parent.verticalCenter
             leftMargin: UI.PADDING_DOUBLE
         }
-        source: title == "" ? "gfx/desk2_logo.png" : "gfx/desk_logo.png"
+        source: "gfx/desk_logo.png"
     }
 
     Text {
@@ -32,9 +32,11 @@ Item {
     }
 
     Rectangle {
-        anchors.bottom: parent.bottom
-        width: parent.width
+        anchors {
+            bottom: parent.bottom; left: parent.left; right: parent.right
+            leftMargin: UI.PADDING_MEDIUM; rightMargin: UI.PADDING_MEDIUM
+        }
         height: 1
-        color: UI.COLOR_INVERTED_BACKGROUND
+        color: UI.COLOR_INVERTED_SECONDARY_FOREGROUND
     }
 }

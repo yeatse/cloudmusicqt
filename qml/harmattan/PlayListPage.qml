@@ -40,11 +40,11 @@ Page {
         ToolIcon {
             id: subscribeBtn
             enabled: false
-            iconSource: subscribed ? "gfx/btn_loved.svg" : "gfx/btn_love.svg"
+            platformIconId: subscribed ? "toolbar-favorite-mark" : "toolbar-favorite-unmark"
             onClicked: subscribePlaylist(!subscribed)
         }
         ToolIcon {
-            iconSource: "gfx/instant_messenger_chat.svg"
+            platformIconId: "toolbar-new-chat"
             enabled: commentId != ""
             onClicked: pageStack.push(Qt.resolvedUrl("CommentPage.qml"), {commentId: commentId})
         }

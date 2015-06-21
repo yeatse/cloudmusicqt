@@ -40,6 +40,14 @@ PageStackWindow {
 
         function resetBackground() {
             theme.inverted = true
+
+            var tbar = pageStack.toolBar
+            for (var i = 0; i < tbar.children.length; i++) {
+                if (tbar.children[i].hasOwnProperty("verticalTileMode")) {
+                    tbar.children[i].opacity = 0.7
+                    break
+                }
+            }
         }
 
         function checkForUpdate() {
@@ -49,7 +57,7 @@ PageStackWindow {
                             if (xhr.status == 200) {
                                 var resp = JSON.parse(xhr.responseText)
                                 if (Util.verNameToVerCode(appVersion) < Util.verNameToVerCode(resp.ver)) {
-                                    var diag = updateDialogComp.createObject(app)
+                                    var diag = updateDialogComp.createObject(initialPage)
                                     diag.message = "当前版本: %1\n最新版本: %2\n%3".arg(appVersion).arg(resp.ver).arg(resp.desc)
                                     diag.downUrl = resp.url
                                     diag.open()
@@ -100,7 +108,8 @@ PageStackWindow {
         onDownloadCompleted: {
             var msg = success ? "下载完成:" : "下载失败:"
             msg += musicName
-            qmlApi.showNotification("网易云音乐", msg, 2)
+            infoBanner.showMessage(msg)
+//            qmlApi.showNotification("网易云音乐", msg, 2)
         }
     }
 

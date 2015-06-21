@@ -16,8 +16,8 @@ TextField {
     }
 
     platformStyle: TextFieldStyle {
-        paddingLeft: searchIcon.width + UI.PADDING_XLARGE
-        paddingRight: clearButton.width + UI.PADDING_XLARGE
+        paddingLeft: searchIcon.width + UI.PADDING_MEDIUM
+        paddingRight: clearButton.width + UI.PADDING_MEDIUM
     }
 
     Timer {
@@ -28,16 +28,18 @@ TextField {
 
     Image {
         id: searchIcon
+        width: UI.SIZE_ICON_LARGE
+        height: UI.SIZE_ICON_LARGE
         anchors { left: parent.left; leftMargin: UI.PADDING_MEDIUM; verticalCenter: parent.verticalCenter }
-        height: UI.SIZE_ICON_DEFAULT
-        width: UI.SIZE_ICON_DEFAULT
-        sourceSize { width: width; height: height }
         source: "image://theme/icon-m-common-search"
         visible: !busy
     }
 
     BusyIndicator {
-        anchors.fill: searchIcon
+        anchors.centerIn: searchIcon
+        platformStyle: BusyIndicatorStyle {
+            inverted: false
+        }
         visible: busy
         running: true
     }
@@ -45,15 +47,14 @@ TextField {
     Item {
         id: clearButton
         anchors { right: parent.right; rightMargin: UI.PADDING_MEDIUM; verticalCenter: parent.verticalCenter }
-        height: UI.SIZE_ICON_DEFAULT
-        width: UI.SIZE_ICON_DEFAULT
+        height: UI.SIZE_ICON_LARGE
+        width: UI.SIZE_ICON_LARGE
         opacity: root.activeFocus ? 1 : 0
         Behavior on opacity {
             NumberAnimation { duration: 100 }
         }
         Image {
-            anchors.fill: parent
-            sourceSize { width: UI.SIZE_ICON_DEFAULT; height: UI.SIZE_ICON_DEFAULT }
+            anchors.centerIn: parent
             source: "image://theme/icon-m-input-clear"
         }
         MouseArea {

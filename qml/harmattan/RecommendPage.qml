@@ -49,6 +49,7 @@ Page {
         anchors.fill: parent
         model: ListModel { id: listModel }
         header: Column {
+            width: ListView.view.width
             ViewHeader {
                 title: "个性化推荐"
             }

@@ -46,8 +46,8 @@ Page {
         anchors.fill: parent
         model: ListModel { id: listModel }
         header: Column {
-            width: listView.width
-            spacing: platformStyle.paddingLarge
+            width: ListView.view.width
+            spacing: UI.PADDING_LARGE
             ViewHeader {
                 title: "每日歌曲推荐"
             }

@@ -57,6 +57,7 @@ Page {
         }
         header: ViewHeader {
             title: "我的下载"
+            implicitWidth: app.inPortrait ? screen.displayHeight : screen.displayWidth
             Button {
                 id: ctrlBtn
                 anchors {
@@ -119,56 +120,68 @@ Page {
                 default: return ""
                 }
             }
-            onClicked: {
-                contextMenu.itemStatus = status
-                contextMenu.errcode = errcode
-                contextMenu.musicId = id
-                contextMenu.open()
-            }
+            onClicked: contextDialog.init(name, status, errcode, id)
         }
     }
 
-    ContextMenu {
-        id: contextMenu
+    SelectionDialog {
+        id: contextDialog
 
         property int itemStatus
         property int errcode
         property string musicId
 
-        MenuLayout {
-            MenuItem {
-                text: "暂停"
-                visible: contextMenu.itemStatus == 0 || contextMenu.itemStatus == 1
-                onClicked: downloader.pause(contextMenu.musicId)
+        selectedIndex: -1
+
+        function init(name, stat, err, mid) {
+            titleText = name
+            itemStatus = stat
+            errcode = err
+            musicId = mid
+
+            var item1
+            if (itemStatus == 2)
+                item1 = "继续"
+            else if (itemStatus == 3)
+                item1 = "播放"
+            else if (itemStatus == 4)
+                item1 = "重试"
+            else
+                item1 = "暂停"
+
+            model.clear()
+            model.append({name: item1})
+            model.append({name: "删除"})
+            selectedIndex = 0
+
+            open()
+        }
+
+        onAccepted: {
+            if (selectedIndex == 0) {
+                if (itemStatus == 2)
+                    downloader.resume(musicId)
+                else if (itemStatus == 3)
+                    player.playDownloader(dlModel, musicId)
+                else if (itemStatus == 4)
+                    downloader.retry(musicId)
+                else
+                    downloader.pause(musicId)
             }
-            MenuItem {
-                text: "继续"
-                visible: contextMenu.itemStatus == 2
-                onClicked: downloader.resume(contextMenu.musicId)
-            }
-            MenuItem {
-                text: "播放"
-                visible: contextMenu.itemStatus == 3
-                onClicked: player.playDownloader(dlModel, contextMenu.musicId)
-            }
-            MenuItem {
-                text: "删除"
-                enabled: player.currentMusic == null || player.currentMusic.musicId != contextMenu.musicId
-                onClicked: {
-                    var file = Util.getLyricFromMusic(downloader.getDownloadFileName(contextMenu.musicId))
+            else if (selectedIndex == 1) {
+                if (player.currentMusic == null || player.currentMusic.musicId != musicId) {
+                    var file = Util.getLyricFromMusic(downloader.getDownloadFileName(musicId))
                     if (file != "")
                         qmlApi.removeFile(file)
 
-                    if (contextMenu.itemStatus == 3 || (contextMenu.itemStatus == 4 && contextMenu.errcode == 4))
-                        downloader.removeCompletedTask(contextMenu.musicId)
+                    if (itemStatus == 3 || (itemStatus == 4 && errcode == 4))
+                        downloader.removeCompletedTask(musicId)
                     else
-                        downloader.cancel(contextMenu.musicId)
+                        downloader.cancel(musicId)
                 }
-            }
-            MenuItem {
-                text: "重试"
-                visible: contextMenu.itemStatus == 4
-                onClicked: downloader.retry(contextMenu.musicId)
+                else {
+                    infoBanner.showMessage("无法删除正在播放的歌曲");
+                }
             }
         }
     }

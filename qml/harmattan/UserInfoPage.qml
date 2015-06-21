@@ -82,6 +82,14 @@ Page {
             platformIconId: "toolbar-back"
             onClicked: pageStack.pop()
         }
+        ToolButton {
+            visible: userId == qmlApi.getUserId()
+            text: "登出"
+            onClicked: {
+                pageStack.pop(app.initialPage)
+                user.logout()
+            }
+        }
         ToolIcon {
             iconSource: "gfx/logo_icon.png"
             onClicked: player.bringToFront()
@@ -100,7 +108,7 @@ Page {
             }
             Item {
                 anchors { left: parent.left; right: parent.right; margins: UI.PADDING_LARGE }
-                height: 120
+                height: width / 480 * 222
                 visible: loadingUserData || !userDataValid
                 BusyIndicator {
                     anchors.centerIn: parent
@@ -116,7 +124,7 @@ Page {
             }
             Item {
                 anchors { left: parent.left; right: parent.right; margins: UI.PADDING_LARGE }
-                height: 120
+                height: width / 480 * 222
                 visible: !loadingUserData && userDataValid
                 Image {
                     id: avatarImage
