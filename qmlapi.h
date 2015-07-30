@@ -25,6 +25,7 @@ public:
 
     Q_INVOKABLE QString getUserId();
     Q_INVOKABLE void saveUserId(const QString& id);
+    Q_INVOKABLE void logout();
 
     Q_INVOKABLE int getVolume();
     Q_INVOKABLE void saveVolume(const int& volume);
@@ -45,6 +46,9 @@ public:
 
     Q_INVOKABLE bool isFileExists(const QString& fileName);
     Q_INVOKABLE bool removeFile(const QString& fileName);
+
+    Q_INVOKABLE QString cleanPath(const QString& path);
+    Q_INVOKABLE QString getHomePath() const;
 
     Q_INVOKABLE QString selectFolder(const QString& title, const QString& defaultDir);
 

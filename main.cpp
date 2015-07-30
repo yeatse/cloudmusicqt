@@ -13,6 +13,10 @@
 #include "musicdownloaddatabase.h"
 #include "lyricloader.h"
 
+#if defined(Q_OS_HARMATTAN) || defined(SIMULATE_HARMATTAN)
+#include "harmattanbackgroundprovider.h"
+#endif
+
 //#define PROXY_HOST "192.168.1.64"
 
 #ifdef PROXY_HOST
@@ -55,6 +59,12 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     QScopedPointer<NetworkAccessManagerFactory> factory(new NetworkAccessManagerFactory);
     viewer->engine()->setNetworkAccessManagerFactory(factory.data());
 
+#if defined(Q_OS_HARMATTAN) || defined(SIMULATE_HARMATTAN)
+    HarmattanBackgroundProvider* provider = new HarmattanBackgroundProvider;
+    viewer->engine()->addImageProvider("appBackground", provider);
+    viewer->rootContext()->setContextProperty("bgProvider", provider);
+#endif
+
     viewer->rootContext()->setContextProperty("qmlApi", new QmlApi(viewer.data()));
     viewer->rootContext()->setContextProperty("collector", new MusicCollector(viewer.data()));
     viewer->rootContext()->setContextProperty("appVersion", app->applicationVersion());
@@ -66,7 +76,11 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     QObject::connect(qApp, SIGNAL(aboutToQuit()), downloader, SLOT(pause()));
     QObject::connect(qApp, SIGNAL(aboutToQuit()), MusicDownloadDatabase::Instance(), SLOT(freeResource()));
 
+#if defined(Q_OS_HARMATTAN) || defined(SIMULATE_HARMATTAN)
+    viewer->setMainQmlFile(QLatin1String("qml/harmattan/main.qml"));
+#else
     viewer->setMainQmlFile(QLatin1String("qml/cloudmusicqt/main.qml"));
+#endif
     viewer->showExpanded();
 
     return app->exec();

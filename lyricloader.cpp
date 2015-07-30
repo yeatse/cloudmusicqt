@@ -96,13 +96,15 @@ int LyricLoader::getLineByPosition(const int &millisec, const int &startPos) con
         return -1;
 
     int result = qBound(0, startPos, mLines.size());
-    while (result < mLines.size()) {
-        if (mLines.at(result)->time > millisec)
-            break;
 
-        result++;
+    if (mLines.at(result)->time <= millisec) {
+        while (++result < mLines.size() && mLines.at(result)->time <= millisec);
+        return result - 1;
     }
-    return result - 1;
+    else {
+        while (--result >= 0 && mLines.at(result)->time > millisec);
+        return result;
+    }
 }
 
 bool LyricLoader::dataAvailable() const

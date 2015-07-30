@@ -4,6 +4,7 @@ Version=1.0
 Type=Application
 Terminal=false
 Name=cloudmusicqt
+Name[zh]=网易云音乐
 Exec=/usr/bin/single-instance /opt/cloudmusicqt/bin/cloudmusicqt
 Icon=/usr/share/icons/hicolor/80x80/apps/cloudmusicqt80.png
 X-Window-Icon=
