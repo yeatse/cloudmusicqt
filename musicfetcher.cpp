@@ -89,7 +89,14 @@ AlbumData* AlbumData::fromVariant(const QVariant &data, int ver)
     else {
         result->id = map.value("id").toInt();
         result->name = map.value("name").toString();
-        result->picUrl = MusicInfo::getPictureUrl(map.value("picStr").toByteArray());
+        QByteArray picStr;
+        if (map.contains("pic_str")) {
+            picStr = map.value("pic_str").toByteArray();
+        }
+        else {
+            picStr = map.value("picStr").toByteArray();
+        }
+        result->picUrl = MusicInfo::getPictureUrl(picStr);
     }
 
     return result;
