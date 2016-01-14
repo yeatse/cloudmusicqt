@@ -1,5 +1,10 @@
+cloudmusicqt (0.9.5) unstable; urgency=low
+  * Fix a bug that causes an error when loading some album cover images.
+
+ -- Yeatse <iyeatse@gmail.com>  Thu, 14 Jan 2016 23:22:21 +0800
+
 cloudmusicqt (0.9.4) unstable; urgency=low
-  * <Add change description here>
+  * Equivalent to symbian 0.9.4 version.
 
  -- Yeatse <iyeatse@gmail.com>  Tue, 09 Jun 2015 01:49:18 +0800
 
