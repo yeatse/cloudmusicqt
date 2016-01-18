@@ -1,3 +1,8 @@
+cloudmusicqt (0.9.6) unstable; urgency=low
+  * Fix an index out of bounds error.
+
+ -- Yeatse <iyeatse@gmail.com>  Mon, 18 Jan 2016 23:18:43 +0800
+
 cloudmusicqt (0.9.5) unstable; urgency=low
   * Fix a bug that causes an error when loading some album cover images.
 

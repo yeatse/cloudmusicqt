@@ -393,7 +393,7 @@ Page {
                 target: audio
                 onPositionChanged: {
                     root.conn2.target = null
-                    audio.volume = 1
+                    audio.volume = (volumeIndicator.volume + 1) / 100
                     root.timer.start()
                 }
             }

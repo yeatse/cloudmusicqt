@@ -95,7 +95,7 @@ int LyricLoader::getLineByPosition(const int &millisec, const int &startPos) con
     if (!mHasTimer || mLines.isEmpty())
         return -1;
 
-    int result = qBound(0, startPos, mLines.size());
+    int result = qBound(0, startPos, mLines.size() - 1);
 
     if (mLines.at(result)->time <= millisec) {
         while (++result < mLines.size() && mLines.at(result)->time <= millisec);
